@@ -740,6 +740,8 @@ name = "bevy_movie_player"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "openh264",
+ "rust-mp4",
 ]
 
 [[package]]
@@ -1204,6 +1206,12 @@ dependencies = [
  "quote",
  "syn 2.0.57",
 ]
+
+[[package]]
+name = "byteorder"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0fc10e8cc6b2580fda3f36eb6dc5316657f812a3df879a44a66fc9f0fdbc4855"
 
 [[package]]
 name = "byteorder"
@@ -1810,7 +1818,7 @@ version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3b78f069cf941075835822953c345b9e1edd67ae347b81ace3aea9de38c2ef33"
 dependencies = [
- "byteorder",
+ "byteorder 1.5.0",
  "gltf-json",
  "lazy_static",
  "serde_json",
@@ -1974,7 +1982,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5690139d2f55868e080017335e4b94cb7414274c74f1669c84fb5feba2c9f69d"
 dependencies = [
  "bytemuck",
- "byteorder",
+ "byteorder 1.5.0",
  "color_quant",
  "num-traits",
  "png",
@@ -2141,7 +2149,7 @@ version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "777b48df9aaab155475a83a7df3070395ea1ac6902f5cd062b8f2b028075c030"
 dependencies = [
- "byteorder",
+ "byteorder 1.5.0",
  "ogg",
  "tinyvec",
 ]
@@ -2622,7 +2630,7 @@ version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6951b4e8bf21c8193da321bcce9c9dd2e13c858fe078bf9054a288b419ae5d6e"
 dependencies = [
- "byteorder",
+ "byteorder 1.5.0",
 ]
 
 [[package]]
@@ -2630,6 +2638,25 @@ name = "once_cell"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
+
+[[package]]
+name = "openh264"
+version = "0.1.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a45714e5c34022f89ac8ddc95c18abfe5e293fcfc3c6a515f888b5836319522"
+dependencies = [
+ "openh264-sys2",
+]
+
+[[package]]
+name = "openh264-sys2"
+version = "0.1.17"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b3f5c7d875e7501b5ecb9a6530fb054fb867b59e68383375c3432ef5ce4a31f7"
+dependencies = [
+ "cc",
+ "walkdir",
+]
 
 [[package]]
 name = "orbclient"
@@ -2915,6 +2942,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust-mp4"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4b14080d183801e17360ea4ebfcdc0a8538bf8782fc581c8e468288a6a00a36"
+dependencies = [
+ "byteorder 0.5.3",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2932,7 +2968,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ac3ffab8f9715a0d455df4bbb9d21e91135aab3cd3ca187af0cd0c3c3f868fdc"
 dependencies = [
- "byteorder",
+ "byteorder 1.5.0",
  "thiserror-core",
  "twox-hash",
 ]

@@ -7,3 +7,5 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.12.1" }
+rust-mp4 = "0.1.0"
+openh264 = "0.1.14"

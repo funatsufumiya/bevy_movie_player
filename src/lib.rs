@@ -1,9 +1,13 @@
 use bevy::prelude::*;
 pub struct MoviePlayerPlugin;
 
+fn hello_world() {
+    println!("Hello, world!");
+}
+
 impl Plugin for MoviePlayerPlugin {
     fn build(&self, app: &mut App) {
-        // add things to your app here
+        app.add_systems(Startup, hello_world);
     }
 }
 
