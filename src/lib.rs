@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 pub struct MoviePlayerPlugin;
 
+mod player;
+
+
 fn hello_world() {
     println!("Hello, world!");
 }
