@@ -1,13 +1,14 @@
-use crate::movie::{Movie, LoadMode};
+use crate::movie::{Player, LoadMode};
 use crate::loader::MovieLoader;
+use crate::mp4_player::Mp4Movie;
 
 use std::time::Duration;
 
 pub struct Mp4Loader;
 
 impl MovieLoader for Mp4Loader {
-    fn load(path: &str, load_mode: LoadMode) -> Movie {
-        Movie {
+    fn load(path: &str, load_mode: LoadMode) -> impl Player {
+        Mp4Movie {
             path: path.to_string(),
             duration: Duration::from_secs(0),
             load_mode,

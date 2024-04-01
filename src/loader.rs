@@ -1,5 +1,5 @@
-use crate::movie::{Movie, LoadMode};
+use crate::movie::{LoadMode, Player};
 
 pub trait MovieLoader {
-    fn load(path: &str, load_mode: LoadMode) -> Movie;
+    fn load(path: &str, load_mode: LoadMode) -> impl Player;
 }
