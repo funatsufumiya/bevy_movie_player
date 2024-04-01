@@ -1,27 +1,9 @@
-use bevy::prelude::*;
-pub struct MoviePlayerPlugin;
+pub mod movie;
+pub mod loader;
+pub mod mp4_loader;
+pub mod mp4_player;
+pub mod plugin;
 
-mod player;
-
-
-fn hello_world() {
-    println!("Hello, world!");
-}
-
-impl Plugin for MoviePlayerPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(Startup, hello_world);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        App::new()
-            .add_plugins(MoviePlayerPlugin)
-            .update(); // run once
-    }
+pub mod prelude {
+    pub use crate::plugin::MoviePlayerPlugin;
 }

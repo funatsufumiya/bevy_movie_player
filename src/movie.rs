@@ -25,11 +25,9 @@ pub struct Movie {
     pub duration: Duration,
     pub load_mode: LoadMode,
     pub audio: Option<Audio>,
-    state: MovieState,
 }
 
-trait Player {
-    fn load(path: &str, load_mode: LoadMode) -> Self;
+pub trait Player {
     fn play(&mut self);
     fn pause(&mut self);
     fn stop(&mut self);
@@ -42,16 +40,6 @@ trait Player {
 }
 
 impl Player for Movie {
-    fn load(path: &str, load_mode: LoadMode) -> Self {
-        Movie {
-            path: path.to_string(),
-            duration: Duration::from_secs(0),
-            load_mode,
-            audio: None,
-            state: MovieState::Stopped,
-        }
-    }
-
     fn play(&mut self) {
         println!("Playing movie: {}", self.path);
         self.set_state(MovieState::Playing);
@@ -72,11 +60,11 @@ impl Player for Movie {
     }
 
     fn get_state(&self) -> MovieState {
-        self.state // FIXME
+        unimplemented!()
     }
     
     fn set_state(&mut self, state: MovieState) {
-        self.state = state; // FIXME
+        unimplemented!()
     }
 
     fn get_duration(&self) -> Duration {
@@ -94,18 +82,4 @@ impl Player for Movie {
         }
     }
 
-}
-
-// test
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let mut movie = Movie::load("movie.mp4", LoadMode::OnMemory);
-        movie.play();
-        movie.pause();
-        movie.stop();
-    }
 }
