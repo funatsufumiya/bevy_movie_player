@@ -1,18 +1,21 @@
-use std::time::Duration;
 use crate::movie::LoadMode;
 use crate::movie::Audio;
 use crate::movie::MovieState;
 use crate::movie::Player;
 
+use std::time::Duration;
+use mp4::Mp4Reader;
+
 #[derive(Debug)]
-pub struct Mp4Movie {
+pub struct Mp4Movie<Reader> {
     pub path: String,
     pub duration: Duration,
     pub load_mode: LoadMode,
     pub audio: Option<Audio>,
+    pub reader: Mp4Reader<Reader>,
 }
 
-impl Player for Mp4Movie {
+impl<Reader> Player for Mp4Movie<Reader> {
     fn play(&mut self) {
         println!("Playing movie: {}", self.path);
         self.set_state(MovieState::Playing);
