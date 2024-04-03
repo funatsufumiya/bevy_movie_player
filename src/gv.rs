@@ -18,6 +18,7 @@ pub struct GVMoviePlayer<Reader: Read + Seek> {
     play_started_time: Option<Duration>,
     pause_started_time: Option<Duration>,
     seek_position: Duration,
+    looped: bool,
 }
 
 pub fn load_gv(path: &str, load_mode: LoadMode) -> impl MoviePlayer {
@@ -34,12 +35,14 @@ pub fn load_gv(path: &str, load_mode: LoadMode) -> impl MoviePlayer {
             play_started_time: None,
             pause_started_time: None,
             seek_position: Duration::from_secs(0),
+            looped: false,
         }
     }
 }
 
 impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
-    fn play(&mut self, bevy_time: &Time) {
+    fn play(&mut self, looped: bool, bevy_time: &Time) {
+        self.looped = looped;
         if self.state == PlayingState::Playing {
             warn!("Already playing");
             return;
@@ -66,7 +69,7 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
         }
     }
 
-    fn stop(&mut self, bevy_time: &Time) {
+    fn stop(&mut self, _bevy_time: &Time) {
         if self.state == PlayingState::Stopped {
             warn!("Already stopped");
         }
@@ -79,6 +82,7 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
 
     fn seek(&mut self, to_time: Duration, bevy_time: &Time) {
         self.seek_position = to_time;
+        self.play_started_time = Some(bevy_time.elapsed());
     }
 
     fn set_image_data(&mut self, image: &mut Image, bevy_time: &Time) {
@@ -97,6 +101,19 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
         self.gv.get_duration()
     }
 
+    fn update(&mut self, bevy_time: &Time) {
+        if self.state == PlayingState::Playing {
+            let position = self.get_position(bevy_time);
+            if position >= self.get_duration() {
+                if self.looped {
+                    self.seek(Duration::from_secs(0), bevy_time);
+                } else {
+                    self.stop(bevy_time);
+                }
+            }
+        }
+    }
+
     fn get_position(&self, bevy_time: &Time) -> Duration {
         match self.state {
             PlayingState::Stopped => Duration::from_secs(0),
@@ -105,7 +122,7 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
         }
     }
 
-    fn set_volume(&mut self, volume: f32) {
+    fn set_volume(&mut self, _volume: f32) {
         warn!("Volume is not supported");
         // do nothing
     }
@@ -125,7 +142,7 @@ mod tests {
     fn it_works() {
         let mut movie = load_gv("assets/test.gv", LoadMode::DiskStream);
         let t = Time::default();
-        movie.play(&t);
+        movie.play(false, &t);
         movie.pause(&t);
         movie.stop(&t);
     }

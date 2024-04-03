@@ -15,10 +15,11 @@ pub enum PlayingState {
 }
 
 pub trait MoviePlayer {
-    fn play(&mut self, bevy_time: &Time);
+    fn play(&mut self, looped: bool, bevy_time: &Time);
     fn pause(&mut self, bevy_time: &Time);
     fn stop(&mut self, bevy_time: &Time);
     fn seek(&mut self, to_time: Duration, bevy_time: &Time);
+    fn update(&mut self, bevy_time: &Time);
     fn set_image_data(&mut self, image: &mut Image, bevy_time: &Time);
     fn get_state(&self) -> PlayingState;
     fn get_duration(&self) -> Duration;

@@ -1,3 +1,4 @@
+use bevy::prelude::*;
 use mp4::parse::Mp4File;
 
 use crate::movie_player::LoadMode;
@@ -38,24 +39,29 @@ pub fn load_mp4(path: &str, load_mode: LoadMode) -> impl MoviePlayer {
     }
 }
 
+#[allow(unused_variables)] // FIXME: just for now
 impl<Reader: Read + Seek> MoviePlayer for Mp4MoviePlayer<Reader> {
-    fn play(&mut self, bevy_time: &bevy::prelude::Time) {
+    fn play(&mut self, looped: bool, bevy_time: &Time) {
         todo!()
     }
 
-    fn pause(&mut self, bevy_time: &bevy::prelude::Time) {
+    fn pause(&mut self, bevy_time: &Time) {
         todo!()
     }
 
-    fn stop(&mut self, bevy_time: &bevy::prelude::Time) {
+    fn stop(&mut self, bevy_time: &Time) {
         todo!()
     }
 
-    fn seek(&mut self, to_time: Duration, bevy_time: &bevy::prelude::Time) {
+    fn seek(&mut self, to_time: Duration, bevy_time: &Time) {
         todo!()
     }
 
-    fn set_image_data(&mut self, image: &mut bevy::prelude::Image, bevy_time: &bevy::prelude::Time) {
+    fn update(&mut self, bevy_time: &Time) {
+        todo!()
+    }
+
+    fn set_image_data(&mut self, image: &mut Image, bevy_time: &Time) {
         todo!()
     }
 
@@ -67,7 +73,7 @@ impl<Reader: Read + Seek> MoviePlayer for Mp4MoviePlayer<Reader> {
         todo!()
     }
 
-    fn get_position(&self, bev_time: &bevy::prelude::Time) -> Duration {
+    fn get_position(&self, bev_time: &Time) -> Duration {
         todo!()
     }
 
@@ -83,7 +89,7 @@ impl<Reader: Read + Seek> MoviePlayer for Mp4MoviePlayer<Reader> {
 // test
 #[cfg(test)]
 mod tests {
-    use super::*;
+    // use super::*;
 
     // #[test]
     // fn it_works() {
