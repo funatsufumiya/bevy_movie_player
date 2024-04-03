@@ -1,5 +1,6 @@
 pub mod movie_player;
-pub mod mp4_video;
+pub mod mp4;
+pub mod gv;
 pub mod plugin;
 
 pub mod prelude {
