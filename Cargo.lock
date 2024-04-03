@@ -1943,7 +1943,7 @@ dependencies = [
 [[package]]
 name = "gv_video"
 version = "0.1.0"
-source = "git+https://github.com/funatsufumiya/rust-gv-video#1657d9c288baed5e2c4e0e5143b5a94c13b11c96"
+source = "git+https://github.com/funatsufumiya/rust-gv-video#68cf87fc93a25aee074679a541a34f01e3f9c3b5"
 dependencies = [
  "byteorder",
  "lz4_flex",

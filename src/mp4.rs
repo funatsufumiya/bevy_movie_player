@@ -39,42 +39,42 @@ pub fn load_mp4(path: &str, load_mode: LoadMode) -> impl MoviePlayer {
 }
 
 impl<Reader: Read + Seek> MoviePlayer for Mp4MoviePlayer<Reader> {
-    fn play(&mut self) {
+    fn play(&mut self, bevy_time: &bevy::prelude::Time) {
         todo!()
     }
 
-    fn pause(&mut self) {
+    fn pause(&mut self, bevy_time: &bevy::prelude::Time) {
         todo!()
     }
 
-    fn stop(&mut self) {
+    fn stop(&mut self, bevy_time: &bevy::prelude::Time) {
         todo!()
     }
 
-    fn seek(&self, time: Duration) {
+    fn seek(&mut self, to_time: Duration, bevy_time: &bevy::prelude::Time) {
         todo!()
     }
-    
+
+    fn set_image_data(&mut self, image: &mut bevy::prelude::Image, bevy_time: &bevy::prelude::Time) {
+        todo!()
+    }
+
     fn get_state(&self) -> PlayingState {
         todo!()
     }
-    
-    fn set_state(&mut self, state: PlayingState) {
-        todo!()
-    }
-    
+
     fn get_duration(&self) -> Duration {
         todo!()
     }
-    
-    fn get_position(&self) -> Duration {
+
+    fn get_position(&self, bev_time: &bevy::prelude::Time) -> Duration {
         todo!()
     }
-    
+
     fn set_volume(&mut self, volume: f32) {
         todo!()
     }
-    
+
     fn get_volume(&self) -> f32 {
         todo!()
     }
