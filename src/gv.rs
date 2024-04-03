@@ -146,4 +146,9 @@ mod tests {
         movie.pause(&t);
         movie.stop(&t);
     }
+
+    // TODO: add duration test
+    // TODO: add loop test
+    // TODO: add seek test
+    // TODO: add image data test
 }
