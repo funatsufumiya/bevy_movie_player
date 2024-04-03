@@ -140,7 +140,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut movie = load_gv("assets/test.gv", LoadMode::DiskStream);
+        let mut movie = load_gv("test_assets/test.gv", LoadMode::DiskStream);
         let t = Time::default();
         movie.play(false, &t);
         movie.pause(&t);
