@@ -4,8 +4,9 @@
 
 **WARN** Still in hot development. The API may change.
 
-- Currently only support .gv format (see https://github.com/funatsufumiya/rust-gv-video).
+- Currently only support `.gv` format (see https://github.com/funatsufumiya/rust-gv-video).
     - possible to play video (with alpha channel) on Bevy.
+    - `.gv` has simple LZ4 compressed + BC1/BC2/BC3/BC7 texture format.
     - both disk stream and on memory stream are supported.
 
 ## Known issues
