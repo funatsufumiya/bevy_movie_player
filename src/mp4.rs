@@ -1,6 +1,8 @@
 use bevy::prelude::*;
+use bevy::render::render_resource::TextureFormat;
 use mp4::parse::Mp4File;
 
+use crate::movie_player::ImageData;
 // use crate::movie_player::LoadMode;
 use crate::movie_player::PlayingState;
 use crate::movie_player::MoviePlayer;
@@ -61,7 +63,7 @@ impl<Reader: Read + Seek> MoviePlayer for Mp4MoviePlayer<Reader> {
         todo!()
     }
 
-    fn get_image_data(&mut self, bevy_time: &Time) -> Vec<u8> {
+    fn get_image_data(&mut self, bevy_time: &Time) -> ImageData {
         todo!()
     }
 

@@ -1,7 +1,11 @@
 use bevy::prelude::*;
+use bevy::render::render_resource::Extent3d;
+use bevy::render::render_resource::TextureFormat;
 use gv_video::get_rgba_vec_from_frame;
+use gv_video::to_vec_u8_unsafe;
 use gv_video::GVVideo;
 
+use crate::movie_player::ImageData;
 // use crate::movie_player::LoadMode;
 use crate::movie_player::PlayingState;
 use crate::movie_player::MoviePlayer;
@@ -83,34 +87,41 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
     }
 
     fn set_image_data(&mut self, image: &mut Image, bevy_time: &Time) {
-        let position = self.get_position(bevy_time);
-        let is_stopped = self.state == PlayingState::Stopped;
-        let frame_or_err = self.gv.read_frame_at(position);
-        if !is_stopped && frame_or_err.is_ok() {
-            let frame = frame_or_err.unwrap();
-            let frame_u8 = get_rgba_vec_from_frame(&frame);
-            image.data = frame_u8;
-        }else{
-            let (width, height) = self.gv.get_size();
-            // fill with black (alpha 0)
-            // FIXME: should be alpha 255 ?
-            image.data = vec![0; width as usize * height as usize * 4];
-        }
+        let image_data = self.get_image_data(bevy_time);
+        image.data = image_data.data;
+        image.texture_descriptor.format = image_data.format;
+        image.texture_descriptor.size = Extent3d {
+            width: image_data.size.0,
+            height: image_data.size.1,
+            depth_or_array_layers: 1,
+        };
     }
 
-    fn get_image_data(&mut self, bevy_time: &Time) -> Vec<u8> {
+    fn get_image_data(&mut self, bevy_time: &Time) -> ImageData {
         let position = self.get_position(bevy_time);
         let is_stopped = self.state == PlayingState::Stopped;
         let frame_or_err = self.gv.read_frame_at(position);
+        let (width, height) = self.gv.get_size();
         if !is_stopped && frame_or_err.is_ok() {
             let frame = frame_or_err.unwrap();
-            let frame_u8 = get_rgba_vec_from_frame(&frame);
-            frame_u8
+            // let frame_u8 = get_rgba_vec_from_frame(&frame);
+            let frame_u8 = to_vec_u8_unsafe(frame);
+            ImageData {
+                data: frame_u8,
+                // format: TextureFormat::Rgba8UnormSrgb,
+                format: TextureFormat::Bgra8UnormSrgb,
+                size: (width, height),
+            }
         }else{
-            let (width, height) = self.gv.get_size();
             // fill with black (alpha 0)
             // FIXME: should be alpha 255 ?
-            vec![0; width as usize * height as usize * 4]
+            let frame_u8 = vec![0; width as usize * height as usize * 4];
+            ImageData {
+                data: frame_u8,
+                // format: TextureFormat::Rgba8UnormSrgb,
+                format: TextureFormat::Bgra8UnormSrgb,
+                size: (width, height),
+            }
         }
     }
 

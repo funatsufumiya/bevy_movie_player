@@ -43,9 +43,10 @@ fn setup(
     // WORKAROUND
     let time = time_res.clone();
 
-    // let movie_player = load_gv("test_assets/test.gv");
+    let movie_player = load_gv("test_assets/test.gv");
     // let movie_player = load_gv("test_assets/test-10px.gv");
-    let movie_player = load_gv("test_assets/alpha-countdown.gv");
+    // let movie_player = load_gv("test_assets/alpha-countdown.gv");
+    // let movie_player = load_gv("test_assets/alpha-countdown-blue.gv");
     movie_res.movie_player = Some(movie_player);
 
     let movie_player = movie_res.movie_player.as_mut().unwrap();
@@ -56,19 +57,17 @@ fn setup(
     commands.spawn(Camera2dBundle::default());
 
     // texture from bytes
-    let (width, height) = movie_player.get_size();
-
     let image_data = movie_player.get_image_data(&time);
 
     let image = Image::new(
         Extent3d {
-            width: width,
-            height: height,
+            width: image_data.get_width(),
+            height: image_data.get_height(),
             depth_or_array_layers: 1,
         },
         TextureDimension::D2,
-        image_data,
-        TextureFormat::Rgba8UnormSrgb,
+        image_data.data,
+        image_data.format,
         // RenderAssetUsages::RENDER_WORLD, // for bevy 0.13.1
     );
 
@@ -136,7 +135,8 @@ fn update(
 
     // println!("Update image data with time: {}", time.elapsed_seconds());
 
-    image.data = movie_player.get_image_data(&time);
+    // image.data = movie_player.get_image_data(&time);
+    movie_player.set_image_data(image, &time);
 }
 
 fn update_fps(
