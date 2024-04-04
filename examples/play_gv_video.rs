@@ -43,10 +43,11 @@ fn setup(
     // WORKAROUND
     let time = time_res.clone();
 
-    let movie_player = load_gv("test_assets/test.gv");
+    // let movie_player = load_gv("test_assets/test.gv");
     // let movie_player = load_gv("test_assets/test-10px.gv");
     // let movie_player = load_gv("test_assets/alpha-countdown.gv");
     // let movie_player = load_gv("test_assets/alpha-countdown-blue.gv");
+    let movie_player = load_gv("test_assets/alpha-countdown-yellow.gv");
     movie_res.movie_player = Some(movie_player);
 
     let movie_player = movie_res.movie_player.as_mut().unwrap();

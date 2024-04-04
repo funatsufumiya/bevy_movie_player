@@ -1,8 +1,7 @@
 use bevy::prelude::*;
 use bevy::render::render_resource::Extent3d;
 use bevy::render::render_resource::TextureFormat;
-use gv_video::get_rgba_vec_from_frame;
-use gv_video::to_vec_u8_unsafe;
+use gv_video::get_bgra_vec_from_frame;
 use gv_video::GVVideo;
 
 use crate::movie_player::ImageData;
@@ -104,11 +103,9 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
         let (width, height) = self.gv.get_size();
         if !is_stopped && frame_or_err.is_ok() {
             let frame = frame_or_err.unwrap();
-            // let frame_u8 = get_rgba_vec_from_frame(&frame);
-            let frame_u8 = to_vec_u8_unsafe(frame);
+            let frame_u8 = get_bgra_vec_from_frame(frame);
             ImageData {
                 data: frame_u8,
-                // format: TextureFormat::Rgba8UnormSrgb,
                 format: TextureFormat::Bgra8UnormSrgb,
                 size: (width, height),
             }
@@ -118,7 +115,6 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
             let frame_u8 = vec![0; width as usize * height as usize * 4];
             ImageData {
                 data: frame_u8,
-                // format: TextureFormat::Rgba8UnormSrgb,
                 format: TextureFormat::Bgra8UnormSrgb,
                 size: (width, height),
             }
