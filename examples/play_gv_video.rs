@@ -1,7 +1,7 @@
 use std::{fs::File, io::BufReader};
 
-use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::render_resource::{Extent3d, TextureDimension, TextureFormat}, time};
-use bevy_movie_player::{gv::{load_gv, GVMoviePlayer}, movie_player, prelude::*};
+use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::render_resource::{Extent3d, TextureDimension}};
+use bevy_movie_player::{gv::{load_gv, GVMoviePlayer}, prelude::*};
 
 fn main() {
     App::new()
@@ -43,11 +43,12 @@ fn setup(
     // WORKAROUND
     let time = time_res.clone();
 
-    // let movie_player = load_gv("test_assets/test.gv");
+    let movie_player = load_gv("test_assets/test.gv");
     // let movie_player = load_gv("test_assets/test-10px.gv");
+    // let movie_player = load_gv("test_assets/countdown.gv");
     // let movie_player = load_gv("test_assets/alpha-countdown.gv");
     // let movie_player = load_gv("test_assets/alpha-countdown-blue.gv");
-    let movie_player = load_gv("test_assets/alpha-countdown-yellow.gv");
+    // let movie_player = load_gv("test_assets/alpha-countdown-yellow.gv");
     movie_res.movie_player = Some(movie_player);
 
     let movie_player = movie_res.movie_player.as_mut().unwrap();
