@@ -2,10 +2,11 @@ use bevy::prelude::*;
 use gv_video::get_rgba_vec_from_frame;
 use gv_video::GVVideo;
 
-use crate::movie_player::LoadMode;
+// use crate::movie_player::LoadMode;
 use crate::movie_player::PlayingState;
 use crate::movie_player::MoviePlayer;
 
+use std::fs::File;
 use std::io::BufReader;
 use std::io::Read;
 use std::io::Seek;
@@ -21,22 +22,18 @@ pub struct GVMoviePlayer<Reader: Read + Seek> {
     looped: bool,
 }
 
-pub fn load_gv(path: &str, load_mode: LoadMode) -> impl MoviePlayer {
-    if load_mode == LoadMode::OnMemory {
-        todo!()
-    } else {
-        let file = std::fs::File::open(path).unwrap();
-        let reader = BufReader::new(file);
-        let gv = GVVideo::load(reader);
-        
-        GVMoviePlayer {
-            gv,
-            state: PlayingState::Stopped,
-            play_started_time: None,
-            pause_started_time: None,
-            seek_position: Duration::from_secs(0),
-            looped: false,
-        }
+pub fn load_gv(path: &str) -> GVMoviePlayer<BufReader<File>> {
+    let file = std::fs::File::open(path).unwrap();
+    let reader = BufReader::new(file);
+    let gv = GVVideo::load(reader);
+    
+    GVMoviePlayer {
+        gv,
+        state: PlayingState::Stopped,
+        play_started_time: None,
+        pause_started_time: None,
+        seek_position: Duration::from_secs(0),
+        looped: false,
     }
 }
 
@@ -87,9 +84,33 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
 
     fn set_image_data(&mut self, image: &mut Image, bevy_time: &Time) {
         let position = self.get_position(bevy_time);
-        if let Ok(frame) = self.gv.read_frame_at(position) {
+        let is_stopped = self.state == PlayingState::Stopped;
+        let frame_or_err = self.gv.read_frame_at(position);
+        if !is_stopped && frame_or_err.is_ok() {
+            let frame = frame_or_err.unwrap();
             let frame_u8 = get_rgba_vec_from_frame(&frame);
             image.data = frame_u8;
+        }else{
+            let (width, height) = self.gv.get_size();
+            // fill with black (alpha 0)
+            // FIXME: should be alpha 255 ?
+            image.data = vec![0; width as usize * height as usize * 4];
+        }
+    }
+
+    fn get_image_data(&mut self, bevy_time: &Time) -> Vec<u8> {
+        let position = self.get_position(bevy_time);
+        let is_stopped = self.state == PlayingState::Stopped;
+        let frame_or_err = self.gv.read_frame_at(position);
+        if !is_stopped && frame_or_err.is_ok() {
+            let frame = frame_or_err.unwrap();
+            let frame_u8 = get_rgba_vec_from_frame(&frame);
+            frame_u8
+        }else{
+            let (width, height) = self.gv.get_size();
+            // fill with black (alpha 0)
+            // FIXME: should be alpha 255 ?
+            vec![0; width as usize * height as usize * 4]
         }
     }
 
@@ -130,6 +151,10 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
     fn get_volume(&self) -> f32 {
         warn!("Volume is not supported");
         0.0
+    }
+    
+    fn get_size(&self) -> (u32, u32) {
+        self.gv.get_size()
     }    
 }
 
@@ -140,7 +165,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut movie = load_gv("test_assets/test.gv", LoadMode::DiskStream);
+        let mut movie = load_gv("test_assets/test.gv");
         let t = Time::default();
         movie.play(false, &t);
         movie.pause(&t);

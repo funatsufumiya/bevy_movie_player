@@ -8,6 +8,6 @@ edition = "2021"
 [dependencies]
 bevy = { version = "0.12.1" }
 mp4 = { git = "https://github.com/funatsufumiya/rust-mp4", version = "0.1.0" }
-gv_video = { git = "https://github.com/funatsufumiya/rust-gv-video", version = "0.1.0" }
+gv_video = { git = "https://github.com/funatsufumiya/rust-gv-video", version = "0.1.1" }
 # mp4 = { version = "0.14.0" }
 openh264 = "0.1.14"

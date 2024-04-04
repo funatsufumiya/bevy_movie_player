@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 use std::time::Duration;
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub enum LoadMode {
-    OnMemory,
-    DiskStream,
-}
+// #[derive(Debug, Copy, Clone, Eq, PartialEq)]
+// pub enum LoadMode {
+//     OnMemory,
+//     DiskStream,
+// }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum PlayingState {
@@ -21,11 +21,13 @@ pub trait MoviePlayer {
     fn seek(&mut self, to_time: Duration, bevy_time: &Time);
     fn update(&mut self, bevy_time: &Time);
     fn set_image_data(&mut self, image: &mut Image, bevy_time: &Time);
+    fn get_image_data(&mut self, bevy_time: &Time) -> Vec<u8>;
     fn get_state(&self) -> PlayingState;
     fn get_duration(&self) -> Duration;
     fn get_position(&self, bev_time: &Time) -> Duration;
     fn set_volume(&mut self, volume: f32);
     fn get_volume(&self) -> f32;
+    fn get_size(&self) -> (u32, u32);
 }
 
 pub trait StateChecker {

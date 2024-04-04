@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use mp4::parse::Mp4File;
 
-use crate::movie_player::LoadMode;
+// use crate::movie_player::LoadMode;
 use crate::movie_player::PlayingState;
 use crate::movie_player::MoviePlayer;
 
@@ -24,18 +24,14 @@ pub struct Mp4MoviePlayer<Reader: Read + Seek> {
     pub reader: Reader,
 }
 
-pub fn load_mp4(path: &str, load_mode: LoadMode) -> impl MoviePlayer {
-    if load_mode == LoadMode::OnMemory {
-        todo!()
-    } else {
-        let file = std::fs::File::open(path).unwrap();
-        let mp4 = mp4::parse::parse(file.try_clone().unwrap()).unwrap();
-        let reader = BufReader::new(file);
+pub fn load_mp4(path: &str) -> impl MoviePlayer {
+    let file = std::fs::File::open(path).unwrap();
+    let mp4 = mp4::parse::parse(file.try_clone().unwrap()).unwrap();
+    let reader = BufReader::new(file);
 
-        Mp4MoviePlayer {
-            mp4,
-            reader: reader,
-        }
+    Mp4MoviePlayer {
+        mp4,
+        reader: reader,
     }
 }
 
@@ -65,6 +61,10 @@ impl<Reader: Read + Seek> MoviePlayer for Mp4MoviePlayer<Reader> {
         todo!()
     }
 
+    fn get_image_data(&mut self, bevy_time: &Time) -> Vec<u8> {
+        todo!()
+    }
+
     fn get_state(&self) -> PlayingState {
         todo!()
     }
@@ -84,6 +84,10 @@ impl<Reader: Read + Seek> MoviePlayer for Mp4MoviePlayer<Reader> {
     fn get_volume(&self) -> f32 {
         todo!()
     }
+
+    fn get_size(&self) -> (u32, u32) {
+        todo!()
+    }
 }
 
 // test
@@ -93,7 +97,7 @@ mod tests {
 
     // #[test]
     // fn it_works() {
-    //     let mut movie = load_mp4("assets/test.mp4", LoadMode::DiskStream);
+    //     let mut movie = load_mp4("assets/test.mp4");
     //     movie.play();
     //     movie.pause();
     //     movie.stop();
