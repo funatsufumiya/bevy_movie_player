@@ -1,4 +1,4 @@
-use std::{fs::File, io::{BufReader, Cursor}};
+use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::render_resource::{Extent3d, TextureDimension}};
 use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::ImageData, prelude::*};
@@ -12,6 +12,7 @@ fn main() {
             handles: Vec::new(),
         })
         .insert_resource(MovieRes {
+            last_update_time: None,
             movie_players: Vec::new(),
         })
         .add_systems(Startup, setup)
@@ -21,6 +22,7 @@ fn main() {
 }
 #[derive(Resource)]
 struct MovieRes {
+    last_update_time: Option<Duration>,
     movie_players: Vec<GVMoviePlayer<BufReader<File>>>, // for disk stream
     // movie_players: Vec<GVMoviePlayer<Cursor<Vec<u8>>>>, // for on memory
 }
@@ -188,6 +190,15 @@ fn update(
     time: Res<Time>,
     // gizmos: Res<Gizmos>,
 ) {
+    // skip update to be fps 30 (msec 33)
+    if movie_res.last_update_time.is_some() {
+        let last_update_time = movie_res.last_update_time.unwrap();
+        let time_since_startup = time.elapsed();
+        if time_since_startup - last_update_time < Duration::from_millis(33) {
+            return;
+        }
+    }
+
     // WORKAROUND
     let time = time.clone();
 
@@ -200,6 +211,8 @@ fn update(
         movie_player.set_image_data(image, &time);
         i += 1;
     }
+
+    movie_res.last_update_time = Some(time.elapsed());
 }
 
 fn update_fps(
