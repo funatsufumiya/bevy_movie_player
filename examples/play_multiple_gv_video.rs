@@ -1,7 +1,7 @@
-use std::{fs::File, io::BufReader};
+use std::{fs::File, io::{BufReader, Cursor}};
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::render_resource::{Extent3d, TextureDimension}};
-use bevy_movie_player::{gv::{load_gv, GVMoviePlayer}, movie_player::ImageData, prelude::*};
+use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::ImageData, prelude::*};
 
 fn main() {
     App::new()
@@ -21,7 +21,8 @@ fn main() {
 }
 #[derive(Resource)]
 struct MovieRes {
-    movie_players: Vec<GVMoviePlayer<BufReader<File>>>,
+    movie_players: Vec<GVMoviePlayer<BufReader<File>>>, // for disk stream
+    // movie_players: Vec<GVMoviePlayer<Cursor<Vec<u8>>>>, // for on memory
 }
 
 #[derive(Resource)]
@@ -50,12 +51,25 @@ fn setup(
     // let movie_player = load_gv("test_assets/alpha-countdown-blue.gv");
     // let movie_player = load_gv("test_assets/alpha-countdown-yellow.gv");
 
+    // for disk stream
     let mut movie_players = Vec::<GVMoviePlayer<BufReader<File>>>::new();
+
+    // for on memory
+    // let mut movie_players = Vec::<GVMoviePlayer<Cursor<Vec<u8>>>>::new();
+
+    // for disk stream
     movie_players.push(load_gv("test_assets/alpha-countdown.gv"));
     movie_players.push(load_gv("test_assets/alpha-countdown-red.gv"));
     movie_players.push(load_gv("test_assets/alpha-countdown-green.gv"));
     movie_players.push(load_gv("test_assets/alpha-countdown-blue.gv"));
     movie_players.push(load_gv("test_assets/alpha-countdown-yellow.gv"));
+
+    // for on memory
+    // movie_players.push(load_gv_on_memory("test_assets/alpha-countdown.gv"));
+    // movie_players.push(load_gv_on_memory("test_assets/alpha-countdown-red.gv"));
+    // movie_players.push(load_gv_on_memory("test_assets/alpha-countdown-green.gv"));
+    // movie_players.push(load_gv_on_memory("test_assets/alpha-countdown-blue.gv"));
+    // movie_players.push(load_gv_on_memory("test_assets/alpha-countdown-yellow.gv"));
     
 
     movie_res.movie_players = movie_players;

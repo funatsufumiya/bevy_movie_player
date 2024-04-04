@@ -1,7 +1,7 @@
-use std::{fs::File, io::BufReader};
+use std::{fs::File, io::BufReader, io::Cursor};
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::render_resource::{Extent3d, TextureDimension}};
-use bevy_movie_player::{gv::{load_gv, GVMoviePlayer}, prelude::*};
+use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, prelude::*};
 
 fn main() {
     App::new()
@@ -21,7 +21,8 @@ fn main() {
 }
 #[derive(Resource)]
 struct MovieRes {
-    movie_player: Option<GVMoviePlayer<BufReader<File>>>,
+    movie_player: Option<GVMoviePlayer<BufReader<File>>>, // for disk stream
+    // movie_player: Option<GVMoviePlayer<Cursor<Vec<u8>>>>, // for on memory
 }
 
 #[derive(Resource)]
@@ -49,6 +50,7 @@ fn setup(
     // let movie_player = load_gv("test_assets/alpha-countdown.gv");
     // let movie_player = load_gv("test_assets/alpha-countdown-blue.gv");
     // let movie_player = load_gv("test_assets/alpha-countdown-yellow.gv");
+    // let movie_player = load_gv_on_memory("test_assets/alpha-countdown-yellow.gv"); // for on memory
     movie_res.movie_player = Some(movie_player);
 
     let movie_player = movie_res.movie_player.as_mut().unwrap();

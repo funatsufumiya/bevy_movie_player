@@ -11,6 +11,7 @@ use crate::movie_player::MoviePlayer;
 
 use std::fs::File;
 use std::io::BufReader;
+use std::io::Cursor;
 use std::io::Read;
 use std::io::Seek;
 use std::time::Duration;
@@ -25,9 +26,31 @@ pub struct GVMoviePlayer<Reader: Read + Seek> {
     looped: bool,
 }
 
+/// Load a GV video from a file (disk stream)
 pub fn load_gv(path: &str) -> GVMoviePlayer<BufReader<File>> {
     let file = std::fs::File::open(path).unwrap();
     let reader = BufReader::new(file);
+    let gv = GVVideo::load(reader);
+    
+    GVMoviePlayer {
+        gv,
+        state: PlayingState::Stopped,
+        play_started_time: None,
+        pause_started_time: None,
+        seek_position: Duration::from_secs(0),
+        looped: false,
+    }
+}
+
+/// Load a GV video from a file (on memory)
+pub fn load_gv_on_memory(path: &str) -> GVMoviePlayer<Cursor<Vec<u8>>> {
+    let file = File::open(path).unwrap();
+    // load all data into memory
+    let mut reader = BufReader::new(file);
+    let mut buffer = Vec::new();
+    reader.read_to_end(&mut buffer).unwrap();
+    // use cursor
+    let reader = Cursor::new(buffer);
     let gv = GVVideo::load(reader);
     
     GVMoviePlayer {
