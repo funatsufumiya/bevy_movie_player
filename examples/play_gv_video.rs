@@ -91,11 +91,9 @@ fn setup(
     
     commands.spawn(SpriteBundle {
         sprite: Sprite {
-            // color: Color::rgb(0.25, 0.25, 0.75),
             custom_size: Some(Vec2::new(640.0, 360.0)),
             ..default()
         },
-        // texture: asset_server.load("images/bevy_logo.png"),
         texture: image_handle.handle.clone().unwrap(),
         ..default()
     });
@@ -123,12 +121,10 @@ fn setup(
 }
 
 fn update(
-    // mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
     image_handle: ResMut<ImageHandle>,
     mut movie_res: ResMut<MovieRes>,
     time: Res<Time>,
-    // gizmos: Res<Gizmos>,
 ) {
     // skip update to be fps 30 (msec 33)
     if movie_res.last_update_time.is_some() {
@@ -150,7 +146,6 @@ fn update(
 
     // println!("Update image data with time: {}", time.elapsed_seconds());
 
-    // image.data = movie_player.get_image_data(&time);
     movie_player.set_image_data(image, &time);
     
     movie_res.last_update_time = Some(time.elapsed());
