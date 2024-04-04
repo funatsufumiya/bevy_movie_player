@@ -1,7 +1,7 @@
 use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::render_resource::{Extent3d, TextureDimension}};
-use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::ImageData, prelude::*};
+use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::{CompressedImageDataProvider, ImageData, ImageDataProvider}, prelude::*};
 
 fn main() {
     App::new()
@@ -81,6 +81,7 @@ fn setup(
     // play all movies
     for movie_player in movie_players {
         movie_player.play(true, &time);
+        // movie_player.play(false, &time);
     }
 
     commands.spawn(Camera2dBundle::default());
@@ -88,7 +89,8 @@ fn setup(
     // texture from bytes
     let mut image_datas = Vec::<ImageData>::new();
     for movie_player in &mut movie_res.movie_players {
-        image_datas.push(movie_player.get_image_data(&time));
+        // image_datas.push(movie_player.get_image_data(&time));
+        image_datas.push(movie_player.get_compressed_image_data(&time));
     }
 
     let mut images = Vec::<Image>::new();
@@ -186,7 +188,8 @@ fn update(
         let movie_player = &mut movie_players[i];
         movie_player.update(&time);
         let image = images_res.get_mut(handle.clone()).unwrap();
-        movie_player.set_image_data(image, &time);
+        // movie_player.set_image_data(image, &time);
+        movie_player.set_compressed_image_data(image, &time);
         i += 1;
     }
 

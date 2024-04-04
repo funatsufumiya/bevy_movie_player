@@ -1,7 +1,7 @@
 use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::render_resource::{Extent3d, TextureDimension}};
-use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, prelude::*};
+use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::{CompressedImageDataProvider, ImageDataProvider}, prelude::*};
 
 fn main() {
     App::new()
@@ -63,7 +63,8 @@ fn setup(
     commands.spawn(Camera2dBundle::default());
 
     // texture from bytes
-    let image_data = movie_player.get_image_data(&time);
+    // let image_data = movie_player.get_image_data(&time);
+    let image_data = movie_player.get_compressed_image_data(&time);
 
     let image = Image::new(
         Extent3d {
@@ -146,7 +147,9 @@ fn update(
 
     // println!("Update image data with time: {}", time.elapsed_seconds());
 
-    movie_player.set_image_data(image, &time);
+    // movie_player.set_image_data(image, &time);
+    movie_player.set_compressed_image_data(image, &time);
+
     
     movie_res.last_update_time = Some(time.elapsed());
 }

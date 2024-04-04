@@ -17,24 +17,24 @@ pub enum PlayingState {
 pub struct ImageData {
     pub data: Vec<u8>,
     pub format: TextureFormat,
-    pub size: (u32, u32),
+    pub resolution: (u32, u32),
 }
 
 impl ImageData {
-    pub fn new(data: Vec<u8>, format: TextureFormat, size: (u32, u32)) -> Self {
+    pub fn new(data: Vec<u8>, format: TextureFormat, resolution: (u32, u32)) -> Self {
         Self {
             data,
             format,
-            size,
+            resolution,
         }
     }
 
     pub fn get_width(&self) -> u32 {
-        self.size.0
+        self.resolution.0
     }
 
     pub fn get_height(&self) -> u32 {
-        self.size.1
+        self.resolution.1
     }
 }
 
@@ -44,14 +44,26 @@ pub trait MoviePlayer {
     fn stop(&mut self, bevy_time: &Time);
     fn seek(&mut self, to_time: Duration, bevy_time: &Time);
     fn update(&mut self, bevy_time: &Time);
-    fn set_image_data(&mut self, image: &mut Image, bevy_time: &Time);
-    fn get_image_data(&mut self, bevy_time: &Time) -> ImageData;
     fn get_state(&self) -> PlayingState;
     fn get_duration(&self) -> Duration;
     fn get_position(&self, bev_time: &Time) -> Duration;
     fn set_volume(&mut self, volume: f32);
     fn get_volume(&self) -> f32;
-    fn get_size(&self) -> (u32, u32);
+    fn get_resolution(&self) -> (u32, u32);
+}
+
+pub trait ImageDataProvider {
+    /// set image data to image with uncompressed texture format (like BGRA8UnormSrgb)
+    fn set_image_data(&mut self, image: &mut Image, bevy_time: &Time);
+    /// returns image data with uncompressed texture format (like BGRA8UnormSrgb)
+    fn get_image_data(&mut self, bevy_time: &Time) -> ImageData;
+}
+
+pub trait CompressedImageDataProvider {
+    /// set image data to image with compressed texture format (like BC7Srgb)
+    fn set_compressed_image_data(&mut self, image: &mut Image, bevy_time: &Time);
+    /// returns image data with compressed texture format (like BC7Srgb)
+    fn get_compressed_image_data(&mut self, bevy_time: &Time) -> ImageData;
 }
 
 pub trait StateChecker {

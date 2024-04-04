@@ -3,8 +3,11 @@ use bevy::render::render_resource::Extent3d;
 use bevy::render::render_resource::TextureFormat;
 use gv_video::get_bgra_vec_from_frame;
 use gv_video::GVVideo;
+use gv_video::GVFormat;
 
+use crate::movie_player::CompressedImageDataProvider;
 use crate::movie_player::ImageData;
+use crate::movie_player::ImageDataProvider;
 // use crate::movie_player::LoadMode;
 use crate::movie_player::PlayingState;
 use crate::movie_player::MoviePlayer;
@@ -108,42 +111,6 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
         self.play_started_time = Some(bevy_time.elapsed());
     }
 
-    fn set_image_data(&mut self, image: &mut Image, bevy_time: &Time) {
-        let image_data = self.get_image_data(bevy_time);
-        image.data = image_data.data;
-        image.texture_descriptor.format = image_data.format;
-        image.texture_descriptor.size = Extent3d {
-            width: image_data.size.0,
-            height: image_data.size.1,
-            depth_or_array_layers: 1,
-        };
-    }
-
-    fn get_image_data(&mut self, bevy_time: &Time) -> ImageData {
-        let position = self.get_position(bevy_time);
-        let is_stopped = self.state == PlayingState::Stopped;
-        let frame_or_err = self.gv.read_frame_at(position);
-        let (width, height) = self.gv.get_size();
-        if !is_stopped && frame_or_err.is_ok() {
-            let frame = frame_or_err.unwrap();
-            let frame_u8 = get_bgra_vec_from_frame(frame);
-            ImageData {
-                data: frame_u8,
-                format: TextureFormat::Bgra8UnormSrgb,
-                size: (width, height),
-            }
-        }else{
-            // fill with black (alpha 0)
-            // FIXME: should be alpha 255 ?
-            let frame_u8 = vec![0; width as usize * height as usize * 4];
-            ImageData {
-                data: frame_u8,
-                format: TextureFormat::Bgra8UnormSrgb,
-                size: (width, height),
-            }
-        }
-    }
-
     fn get_state(&self) -> PlayingState {
         self.state
     }
@@ -183,9 +150,96 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
         0.0
     }
     
-    fn get_size(&self) -> (u32, u32) {
-        self.gv.get_size()
+    fn get_resolution(&self) -> (u32, u32) {
+        self.gv.get_resolution()
     }    
+}
+
+impl<Reader: Read + Seek> ImageDataProvider for GVMoviePlayer<Reader> {
+    fn set_image_data(&mut self, image: &mut Image, bevy_time: &Time) {
+        let image_data = self.get_image_data(bevy_time);
+        image.data = image_data.data;
+        image.texture_descriptor.format = image_data.format;
+        image.texture_descriptor.size = Extent3d {
+            width: image_data.resolution.0,
+            height: image_data.resolution.1,
+            depth_or_array_layers: 1,
+        };
+    }
+
+    fn get_image_data(&mut self, bevy_time: &Time) -> ImageData {
+        let position = self.get_position(bevy_time);
+        let is_stopped = self.state == PlayingState::Stopped;
+        let frame_or_err = self.gv.read_frame_at(position);
+        let (width, height) = self.gv.get_resolution();
+        if !is_stopped && frame_or_err.is_ok() {
+            let frame = frame_or_err.unwrap();
+            let frame_u8 = get_bgra_vec_from_frame(frame);
+            ImageData {
+                data: frame_u8,
+                format: TextureFormat::Bgra8UnormSrgb,
+                resolution: (width, height),
+            }
+        }else{
+            // fill with black (alpha 0)
+            // FIXME: should be alpha 255 ?
+            let frame_u8 = vec![0; width as usize * height as usize * 4];
+            ImageData {
+                data: frame_u8,
+                format: TextureFormat::Bgra8UnormSrgb,
+                resolution: (width, height),
+            }
+        }
+    }
+}
+
+fn get_texture_format(gv_format: GVFormat) -> TextureFormat {
+    match gv_format {
+        GVFormat::DXT1 => TextureFormat::Bc1RgbaUnormSrgb,
+        GVFormat::DXT3 => TextureFormat::Bc2RgbaUnormSrgb,
+        GVFormat::DXT5 => TextureFormat::Bc3RgbaUnormSrgb,
+        GVFormat::BC7 => TextureFormat::Bc7RgbaUnormSrgb,
+    }
+}
+
+impl<Reader: Read + Seek> CompressedImageDataProvider for GVMoviePlayer<Reader> {
+    fn set_compressed_image_data(&mut self, image: &mut Image, bevy_time: &Time) {
+        let image_data = self.get_image_data(bevy_time);
+        image.data = image_data.data;
+        image.texture_descriptor.format = image_data.format;
+        image.texture_descriptor.size = Extent3d {
+            width: image_data.resolution.0,
+            height: image_data.resolution.1,
+            depth_or_array_layers: 1,
+        };
+    }
+
+    fn get_compressed_image_data(&mut self, bevy_time: &Time) -> ImageData {
+        let position = self.get_position(bevy_time);
+        let is_stopped = self.state == PlayingState::Stopped;
+        let gv_format = self.gv.get_format();
+        let frame_or_err = self.gv.read_frame_compressed_at(position);
+        let (width, height) = self.gv.get_resolution();
+        if !is_stopped && frame_or_err.is_ok() {
+            let frame_bc = frame_or_err.unwrap();
+            ImageData {
+                data: frame_bc,
+                format: get_texture_format(gv_format),
+                resolution: (width, height),
+            }
+        }else{
+            // TODO: encode black frame to the same format
+
+            // fill with black (alpha 0)
+            // FIXME: should be alpha 255 ?
+            let frame_u8 = vec![0; width as usize * height as usize * 4];
+            ImageData {
+                data: frame_u8,
+                format: TextureFormat::Bgra8UnormSrgb,
+                resolution: (width, height),
+            }
+        }
+    }
 }
 
 // test
