@@ -2,7 +2,7 @@
 
 ![screenshot](./screenshot.png)
 
-**WARN** Still in hot development. The API may change.
+**WARN** Still in development, The API may change in the future.
 
 - Currently only support `.gv` format (see https://github.com/funatsufumiya/rust-gv-video).
     - possible to play video (with alpha channel) on Bevy.
