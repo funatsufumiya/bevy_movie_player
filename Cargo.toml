@@ -4,7 +4,7 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
-bevy = { version = "0.13.2" }
+bevy = { version = "0.13" }
 # bevy = { version = "0.12.1", features = ["trace_tracy"] }
 mp4 = { git = "https://github.com/funatsufumiya/rust-mp4", version = "0.1.0" }
 gv_video = { git = "https://github.com/funatsufumiya/rust-gv-video", version = "0.1.7" }
