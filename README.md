@@ -2,12 +2,21 @@
 
 ![screenshot](./screenshot.png)
 
+A movie player plugin for Bevy game engine.
+
 **WARN** Still in development, The API may change in the future.
 
 - Currently only support `.gv` format (see https://github.com/funatsufumiya/rust-gv-video).
     - possible to play video (with alpha channel) on Bevy.
     - `.gv` has simple LZ4 compressed + BC1/BC2/BC3/BC7 texture format.
     - both disk stream and on memory stream are supported.
+
+## Version compatibility
+
+| Bevy | bevy_movie_player |
+|------|-------------------|
+| 0.13 | 0.2               |
+| 0.12 | 0.1               |
 
 ## Known issues
 
