@@ -13,7 +13,8 @@
 
 - Movie load FPS limitation is needed. (example code has 30fps limitation, but considering to use original thread in module)
 - Very slow FPS on debug build. Please use `--release` flag to check the performance.
-- Sound is not supported now.
+- Compressed Texture cannot be used on first frame, to avoid panic: `Using pixel_size for compressed textures is invalid` (`bevy_render-0.12.1/src/texture/image.rs:785:18`).
+- No audio support now.
 
 ## Planning
 
