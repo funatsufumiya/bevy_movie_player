@@ -1,6 +1,6 @@
 use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 
-use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::render_resource::{Extent3d, TextureDimension}};
+use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension}}};
 use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::{CompressedImageDataProvider, ImageDataProvider, LoopMode}, prelude::*};
 
 fn main() {
@@ -64,7 +64,7 @@ fn setup(
     // WORKAROUND: to avoid panic: Using pixel_size for compressed textures is invalid
     let image_data = movie_player.get_image_data();
 
-    println!("Image data: {:?}", image_data);
+    // println!("Image data: {:?}", image_data);
 
     let image = Image::new(
         Extent3d {
@@ -75,7 +75,7 @@ fn setup(
         TextureDimension::D2,
         image_data.data,
         image_data.format,
-        // RenderAssetUsages::RENDER_WORLD, // for bevy 0.13.1
+        RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD,
     );
 
     image_handle.handle = Some(images.add(image));
@@ -123,7 +123,7 @@ fn setup(
 
 fn update(
     mut images: ResMut<Assets<Image>>,
-    image_handle: ResMut<ImageHandle>,
+    image_handle: Res<ImageHandle>,
     mut movie_res: ResMut<MovieRes>,
     time: Res<Time>,
 ) {
@@ -140,13 +140,13 @@ fn update(
     movie_player.update(time.elapsed());
 
     // get image from handle
-    let image = images.get_mut(image_handle.handle.clone().unwrap()).unwrap();
+    let handle = image_handle.handle.clone().unwrap();
+    let image = images.get_mut(handle).unwrap();
 
     // println!("Update image data with time: {}", time.elapsed_seconds());
 
     // movie_player.set_image_data(image);
     movie_player.set_compressed_image_data(image); // faster
-
     
     movie_res.last_update_time = Some(time.elapsed());
 }
@@ -156,7 +156,7 @@ fn update_fps(
     mut query: Query<&mut Text, With<FpsText>>,
 ) {
     for mut text in &mut query {
-        if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
+        if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
             if let Some(value) = fps.smoothed() {
                 // Update the value of the second section
                 text.sections[1].value = format!("{value:.2}");

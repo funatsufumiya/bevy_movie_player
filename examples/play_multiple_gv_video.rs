@@ -1,6 +1,6 @@
 use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 
-use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::render_resource::{Extent3d, TextureDimension}};
+use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension}}};
 use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::{BlankMode, Blankable, CompressedImageDataProvider, ImageData, ImageDataProvider, LoopMode, PlayingState}, prelude::*};
 
 fn main() {
@@ -112,7 +112,7 @@ fn setup(
             TextureDimension::D2,
             image_data.data,
             image_data.format,
-            // RenderAssetUsages::RENDER_WORLD, // for bevy 0.13.1
+            RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD,
         ));
     }
 
@@ -206,7 +206,7 @@ fn update_fps(
     mut query: Query<&mut Text, With<FpsText>>,
 ) {
     for mut text in &mut query {
-        if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
+        if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
             if let Some(value) = fps.smoothed() {
                 // Update the value of the second section
                 text.sections[1].value = format!("{value:.2}");
@@ -217,7 +217,7 @@ fn update_fps(
 
 fn key_handler(
     mut movie_res: ResMut<MovieRes>,
-    keyboard_input: Res<Input<KeyCode>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
     // time: Res<Time>,
 ) {
     let movie_players = &mut movie_res.movie_players;
@@ -232,7 +232,7 @@ fn key_handler(
                 PlayingState::Stopped => movie_player.play(),
             }
         }
-        if keyboard_input.just_pressed(KeyCode::Return) {
+        if keyboard_input.just_pressed(KeyCode::Enter) {
             // movie_player.stop(&time);
             
             // toggle stop/play
@@ -242,11 +242,11 @@ fn key_handler(
                 PlayingState::Stopped => movie_player.play(),
             }
         }
-        if keyboard_input.just_pressed(KeyCode::Right) {
+        if keyboard_input.just_pressed(KeyCode::ArrowRight) {
             let pos = movie_player.get_position();
             movie_player.seek(pos + Duration::from_secs_f32(1.0));
         }
-        if keyboard_input.just_pressed(KeyCode::Left) {
+        if keyboard_input.just_pressed(KeyCode::ArrowLeft) {
             let pos = movie_player.get_position();
             movie_player.seek(pos - Duration::from_secs_f32(1.0));
         }
