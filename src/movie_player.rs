@@ -14,6 +14,19 @@ pub enum PlayingState {
     Stopped,
 }
 
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum LoopMode {
+    Stop,
+    Loop,
+    PauseAtEnd,
+}
+
+impl Default for LoopMode {
+    fn default() -> Self {
+        LoopMode::Stop
+    }
+}
+
 // #[derive(Clone)]
 #[derive(Debug)]
 pub struct ImageData {
@@ -62,7 +75,7 @@ impl Default for BlankMode {
 }
 
 pub trait MoviePlayer {
-    fn play(&mut self, looped: bool, bevy_time: &Time);
+    fn play(&mut self, bevy_time: &Time);
     fn pause(&mut self, bevy_time: &Time);
     fn stop(&mut self, bevy_time: &Time);
     fn seek(&mut self, to_time: Duration, bevy_time: &Time);
@@ -73,6 +86,8 @@ pub trait MoviePlayer {
     fn set_volume(&mut self, volume: f32);
     fn get_volume(&self) -> f32;
     fn get_resolution(&self) -> (u32, u32);
+    fn get_loop_mode(&self) -> LoopMode;
+    fn set_loop_mode(&mut self, loop_mode: LoopMode);
 }
 
 pub trait Blankable {

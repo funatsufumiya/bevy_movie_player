@@ -10,6 +10,7 @@ use crate::movie_player::Blankable;
 use crate::movie_player::CompressedImageDataProvider;
 use crate::movie_player::ImageData;
 use crate::movie_player::ImageDataProvider;
+use crate::movie_player::LoopMode;
 // use crate::movie_player::LoadMode;
 use crate::movie_player::PlayingState;
 use crate::movie_player::MoviePlayer;
@@ -28,7 +29,7 @@ pub struct GVMoviePlayer<Reader: Read + Seek> {
     play_started_time: Option<Duration>,
     pause_started_time: Option<Duration>,
     seek_position: Duration,
-    looped: bool,
+    loop_mode: LoopMode,
     blank_mode: BlankMode,
 }
 
@@ -44,7 +45,7 @@ pub fn load_gv(path: &str) -> GVMoviePlayer<BufReader<File>> {
         play_started_time: None,
         pause_started_time: None,
         seek_position: Duration::from_secs(0),
-        looped: false,
+        loop_mode: LoopMode::default(),
         blank_mode: BlankMode::default(),
     }
 }
@@ -66,14 +67,13 @@ pub fn load_gv_on_memory(path: &str) -> GVMoviePlayer<Cursor<Vec<u8>>> {
         play_started_time: None,
         pause_started_time: None,
         seek_position: Duration::from_secs(0),
-        looped: false,
+        loop_mode: LoopMode::default(),
         blank_mode: BlankMode::default(),
     }
 }
 
 impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
-    fn play(&mut self, looped: bool, bevy_time: &Time) {
-        self.looped = looped;
+    fn play(&mut self, bevy_time: &Time) {
         if self.state == PlayingState::Playing {
             warn!("Already playing");
             return;
@@ -130,10 +130,24 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
         if self.state == PlayingState::Playing {
             let position = self.get_position(bevy_time);
             if position >= self.get_duration() {
-                if self.looped {
-                    self.seek(Duration::from_secs(0), bevy_time);
-                } else {
-                    self.stop(bevy_time);
+                match self.loop_mode {
+                    LoopMode::Stop => {
+                        self.stop(bevy_time);
+                    },
+                    LoopMode::Loop => {
+                        self.seek(Duration::from_secs(0), bevy_time);
+                    },
+                    LoopMode::PauseAtEnd => {
+                        // self.seek(self.get_duration(), bevy_time);
+
+                        // FIXME: not working
+                        // let last_frame_pos = self.gv.get_fps() * (self.gv.get_frame_count() as f32 - 1.0);
+                        // self.seek(Duration::from_secs_f32(last_frame_pos), bevy_time);
+
+                        // WORKAROUND: seek to the end - 0.1ms
+                        self.seek(self.get_duration() - Duration::from_secs_f32(0.0001), bevy_time);
+                        self.pause(bevy_time);
+                    },
                 }
             }
         }
@@ -160,6 +174,14 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
     
     fn get_resolution(&self) -> (u32, u32) {
         self.gv.get_resolution()
+    }
+    
+    fn get_loop_mode(&self) -> LoopMode {
+        self.loop_mode
+    }
+    
+    fn set_loop_mode(&mut self, loop_mode: LoopMode) {
+        self.loop_mode = loop_mode;
     }
 }
 
@@ -396,7 +418,7 @@ mod tests {
     fn it_works() {
         let mut movie = load_gv("test_assets/test.gv");
         let t = Time::default();
-        movie.play(false, &t);
+        movie.play(&t);
         movie.pause(&t);
         movie.stop(&t);
     }

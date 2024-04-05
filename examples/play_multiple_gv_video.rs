@@ -1,7 +1,7 @@
 use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::render_resource::{Extent3d, TextureDimension}};
-use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::{BlankMode, Blankable, CompressedImageDataProvider, ImageData, ImageDataProvider, PlayingState}, prelude::*};
+use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::{BlankMode, Blankable, CompressedImageDataProvider, ImageData, ImageDataProvider, LoopMode, PlayingState}, prelude::*};
 
 fn main() {
     App::new()
@@ -81,12 +81,16 @@ fn setup(
 
     // play all movies
     for movie_player in movie_players {
-        movie_player.play(true, &time);
+        movie_player.set_loop_mode(LoopMode::Loop);
+        movie_player.play(&time);
+
+        // movie_player.set_loop_mode(LoopMode::PauseAtEnd);
         // movie_player.set_blank_mode(BlankMode::Transparent);
         // movie_player.set_blank_mode(BlankMode::LastFrameOnPauseAndStop);
         // movie_player.set_blank_mode(BlankMode::LastFrameOnPause_FirstFrameOnStop);
+        // movie_player.set_blank_mode(BlankMode::LastFrameOnPause_TransparentOnStop);
         // movie_player.set_blank_mode(BlankMode::Black);
-        // movie_player.play(false, &time);
+        // movie_player.play(&time);
     }
 
     commands.spawn(Camera2dBundle::default());
@@ -228,12 +232,19 @@ fn key_handler(
             // toggle play/pause
             match movie_player.get_state() {
                 PlayingState::Playing => movie_player.pause(&time),
-                PlayingState::Paused => movie_player.play(false, &time),
-                PlayingState::Stopped => movie_player.play(false, &time),
+                PlayingState::Paused => movie_player.play(&time),
+                PlayingState::Stopped => movie_player.play(&time),
             }
         }
         if keyboard_input.just_pressed(KeyCode::Return) {
-            movie_player.stop(&time);
+            // movie_player.stop(&time);
+            
+            // toggle stop/play
+            match movie_player.get_state() {
+                PlayingState::Playing => movie_player.stop(&time),
+                PlayingState::Paused => movie_player.stop(&time),
+                PlayingState::Stopped => movie_player.play(&time),
+            }
         }
         if keyboard_input.just_pressed(KeyCode::Right) {
             let pos = movie_player.get_position(&time);
