@@ -5,6 +5,8 @@ use gv_video::get_bgra_vec_from_frame;
 use gv_video::GVVideo;
 use gv_video::GVFormat;
 
+use crate::movie_player::BlankMode;
+use crate::movie_player::Blankable;
 use crate::movie_player::CompressedImageDataProvider;
 use crate::movie_player::ImageData;
 use crate::movie_player::ImageDataProvider;
@@ -27,6 +29,7 @@ pub struct GVMoviePlayer<Reader: Read + Seek> {
     pause_started_time: Option<Duration>,
     seek_position: Duration,
     looped: bool,
+    blank_mode: BlankMode,
 }
 
 /// Load a GV video from a file (disk stream)
@@ -42,6 +45,7 @@ pub fn load_gv(path: &str) -> GVMoviePlayer<BufReader<File>> {
         pause_started_time: None,
         seek_position: Duration::from_secs(0),
         looped: false,
+        blank_mode: BlankMode::default(),
     }
 }
 
@@ -63,6 +67,7 @@ pub fn load_gv_on_memory(path: &str) -> GVMoviePlayer<Cursor<Vec<u8>>> {
         pause_started_time: None,
         seek_position: Duration::from_secs(0),
         looped: false,
+        blank_mode: BlankMode::default(),
     }
 }
 
@@ -152,7 +157,88 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
     
     fn get_resolution(&self) -> (u32, u32) {
         self.gv.get_resolution()
-    }    
+    }
+}
+
+impl<Reader: Read + Seek> Blankable for GVMoviePlayer<Reader> {
+    fn set_blank_mode(&mut self, blank_mode: BlankMode) {
+        self.blank_mode = blank_mode;
+    }
+    
+    fn get_blank_mode(&self) -> BlankMode {
+        return self.blank_mode;
+    }
+}
+
+const fn black_frame_bgra_1x1() -> &'static [u8] {
+    &[0, 0, 0, 255]
+}
+
+const fn white_frame_bgra_1x1() -> &'static [u8] {
+    &[255, 255, 255, 255]
+}
+
+const fn transparent_frame_bgra_1x1() -> &'static [u8] {
+    &[0, 0, 0, 0]
+}
+
+fn texture_1x1_bgra(data: &[u8]) -> ImageData {
+    ImageData {
+        data: data.to_vec(),
+        format: TextureFormat::Bgra8UnormSrgb,
+        resolution: (1, 1),
+    }
+}
+// fn texture_bgra(data: &Vec<u8>, width: u32, height: u32) -> ImageData {
+//     ImageData {
+//         data: data.clone(),
+//         format: TextureFormat::Bgra8UnormSrgb,
+//         resolution: (width, height),
+//     }
+// }
+
+fn get_blank_frame_bgra(blank_mode: BlankMode, state:PlayingState, last_or_first_frame: Option<ImageData>) -> ImageData {
+    // NOTE: BGRA format, black is (0, 0, 0, 255), white is (255, 255, 255, 255)
+    match blank_mode {
+        BlankMode::Black => texture_1x1_bgra(black_frame_bgra_1x1()),
+        BlankMode::White => texture_1x1_bgra(white_frame_bgra_1x1()),
+        BlankMode::Transparent => texture_1x1_bgra(transparent_frame_bgra_1x1()),
+        BlankMode::LastFrameOnPause_TransparentOnStop => {
+            if state == PlayingState::Paused {
+                if let Some(last_frame) = last_or_first_frame {
+                    last_frame
+                } else {
+                    texture_1x1_bgra(transparent_frame_bgra_1x1())
+                }
+            } else {
+                texture_1x1_bgra(transparent_frame_bgra_1x1())
+            }
+        },
+        BlankMode::LastFrameOnPause_FirstFrameOnStop => {
+            if state == PlayingState::Paused {
+                if let Some(last_frame) = last_or_first_frame {
+                    last_frame
+                } else {
+                    texture_1x1_bgra(transparent_frame_bgra_1x1())
+                }
+            } else if state == PlayingState::Stopped {
+                if let Some(first_frame) = last_or_first_frame {
+                    first_frame
+                } else {
+                    texture_1x1_bgra(transparent_frame_bgra_1x1())
+                }
+            } else {
+                texture_1x1_bgra(transparent_frame_bgra_1x1())
+            }
+        },
+        BlankMode::LastFrameOnPauseAndStop => {
+            if let Some(last_or_first_frame) = last_or_first_frame {
+                last_or_first_frame
+            } else {
+                texture_1x1_bgra(transparent_frame_bgra_1x1())
+            }
+        },
+    }
 }
 
 impl<Reader: Read + Seek> ImageDataProvider for GVMoviePlayer<Reader> {
@@ -168,26 +254,56 @@ impl<Reader: Read + Seek> ImageDataProvider for GVMoviePlayer<Reader> {
     }
 
     fn get_image_data(&mut self, bevy_time: &Time) -> ImageData {
-        let position = self.get_position(bevy_time);
-        let is_stopped = self.state == PlayingState::Stopped;
-        let frame_or_err = self.gv.read_frame_at(position);
-        let (width, height) = self.gv.get_resolution();
-        if !is_stopped && frame_or_err.is_ok() {
-            let frame = frame_or_err.unwrap();
-            let frame_u8 = get_bgra_vec_from_frame(frame);
-            ImageData {
-                data: frame_u8,
-                format: TextureFormat::Bgra8UnormSrgb,
-                resolution: (width, height),
+        match self.state {
+            PlayingState::Stopped => {
+                // FIXME: slow?
+                let frame_or_not = if self.blank_mode == BlankMode::LastFrameOnPause_FirstFrameOnStop {
+                    self.gv.read_frame_at(Duration::from_secs(0)).ok()
+                } else if self.blank_mode == BlankMode::LastFrameOnPauseAndStop {
+                    self.gv.read_frame(self.gv.get_frame_count() - 1).ok()
+                } else {
+                    None
+                };
+                let frame_data = if let Some(frame) = frame_or_not {
+                    Some(ImageData {
+                        data: get_bgra_vec_from_frame(frame),
+                        format: TextureFormat::Bgra8UnormSrgb,
+                        resolution: self.gv.get_resolution(),
+                    })
+                } else {
+                    None
+                };
+                
+                get_blank_frame_bgra(self.blank_mode, self.state, frame_data)
             }
-        }else{
-            // fill with black (alpha 0)
-            // FIXME: should be alpha 255 ?
-            let frame_u8 = vec![0; width as usize * height as usize * 4];
-            ImageData {
-                data: frame_u8,
-                format: TextureFormat::Bgra8UnormSrgb,
-                resolution: (width, height),
+            PlayingState::Paused => {
+                // FIXME: slow?
+                let last_frame = self.gv.read_frame_at(self.get_position(bevy_time)).ok();
+                let last_frame_data = if let Some(frame) = last_frame {
+                    Some(ImageData {
+                        data: get_bgra_vec_from_frame(frame),
+                        format: TextureFormat::Bgra8UnormSrgb,
+                        resolution: self.gv.get_resolution(),
+                    })
+                } else {
+                    None
+                };
+                
+                get_blank_frame_bgra(self.blank_mode, self.state, last_frame_data)
+            }
+            PlayingState::Playing => {
+                let frame = self.gv.read_frame_at(self.get_position(bevy_time)).ok();
+                let frame_data = if let Some(frame) = frame {
+                    ImageData {
+                        data: get_bgra_vec_from_frame(frame),
+                        format: TextureFormat::Bgra8UnormSrgb,
+                        resolution: self.gv.get_resolution(),
+                    }
+                } else {
+                    // WORKAROUND
+                    get_blank_frame_bgra(self.blank_mode, self.state, None)
+                };
+                frame_data
             }
         }
     }
@@ -215,28 +331,54 @@ impl<Reader: Read + Seek> CompressedImageDataProvider for GVMoviePlayer<Reader> 
     }
 
     fn get_compressed_image_data(&mut self, bevy_time: &Time) -> ImageData {
-        let position = self.get_position(bevy_time);
-        let is_stopped = self.state == PlayingState::Stopped;
-        let gv_format = self.gv.get_format();
-        let frame_or_err = self.gv.read_frame_compressed_at(position);
-        let (width, height) = self.gv.get_resolution();
-        if !is_stopped && frame_or_err.is_ok() {
-            let frame_bc = frame_or_err.unwrap();
-            ImageData {
-                data: frame_bc,
-                format: get_texture_format(gv_format),
-                resolution: (width, height),
+        match self.state {
+            PlayingState::Stopped => {
+                // FIXME: slow?
+                let frame_or_not = if self.blank_mode == BlankMode::LastFrameOnPause_FirstFrameOnStop {
+                    self.gv.read_frame_compressed_at(Duration::from_secs(0)).ok()
+                } else if self.blank_mode == BlankMode::LastFrameOnPauseAndStop {
+                    self.gv.read_frame_compressed(self.gv.get_frame_count() - 1).ok()
+                } else {
+                    None
+                };
+                let frame_data = if let Some(frame) = frame_or_not {
+                    Some(ImageData {
+                        data: frame,
+                        format: get_texture_format(self.gv.get_format()),
+                        resolution: self.gv.get_resolution(),
+                    })
+                } else {
+                    None
+                };
+                get_blank_frame_bgra(self.blank_mode, self.state, frame_data)
             }
-        }else{
-            // TODO: encode black frame to the same format
-
-            // fill with black (alpha 0)
-            // FIXME: should be alpha 255 ?
-            let frame_u8 = vec![0; width as usize * height as usize * 4];
-            ImageData {
-                data: frame_u8,
-                format: TextureFormat::Bgra8UnormSrgb,
-                resolution: (width, height),
+            PlayingState::Paused => {
+                // FIXME: slow?
+                let last_frame = self.gv.read_frame_compressed_at(self.get_position(bevy_time)).ok();
+                let last_frame_data = if let Some(frame) = last_frame {
+                    Some(ImageData {
+                        data: frame,
+                        format: get_texture_format(self.gv.get_format()),
+                        resolution: self.gv.get_resolution(),
+                    })
+                } else {
+                    None
+                };
+                get_blank_frame_bgra(self.blank_mode, self.state, last_frame_data)
+            }
+            PlayingState::Playing => {
+                let frame = self.gv.read_frame_compressed_at(self.get_position(bevy_time)).ok();
+                let frame_data = if let Some(frame) = frame {
+                    ImageData {
+                        data: frame,
+                        format: get_texture_format(self.gv.get_format()),
+                        resolution: self.gv.get_resolution(),
+                    }
+                } else {
+                    // WORKAROUND
+                    get_blank_frame_bgra(self.blank_mode, self.state, None)
+                };
+                frame_data
             }
         }
     }

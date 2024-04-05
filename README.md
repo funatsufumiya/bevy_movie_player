@@ -13,7 +13,7 @@
 
 - Movie load FPS limitation is needed. (example code has 30fps limitation, but should use original thread in module)
 - Sound is not supported now.
-- Returns alpha 0 image if movie stops. Planning to provide mode to show last frame or black image.
+- ✅ ~~Returns alpha 0 image if movie stops. Planning to provide mode to show last frame or black image.~~
 
 ## Planning
 

@@ -14,6 +14,7 @@ pub enum PlayingState {
     Stopped,
 }
 
+// #[derive(Clone)]
 pub struct ImageData {
     pub data: Vec<u8>,
     pub format: TextureFormat,
@@ -38,6 +39,27 @@ impl ImageData {
     }
 }
 
+#[allow(non_camel_case_types)]
+/// BlankMode is used for blanking the screen when the movie is not playing.
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum BlankMode {
+    Black,
+    White,
+    Transparent,
+    /// use last frame on pause, otherwise transparent
+    LastFrameOnPause_TransparentOnStop,
+    /// use last frame on pause, use first frame on stop
+    LastFrameOnPause_FirstFrameOnStop,
+    /// use last frame on pause and stop
+    LastFrameOnPauseAndStop,
+}
+
+impl Default for BlankMode {
+    fn default() -> Self {
+        BlankMode::LastFrameOnPause_FirstFrameOnStop
+    }
+}
+
 pub trait MoviePlayer {
     fn play(&mut self, looped: bool, bevy_time: &Time);
     fn pause(&mut self, bevy_time: &Time);
@@ -50,6 +72,11 @@ pub trait MoviePlayer {
     fn set_volume(&mut self, volume: f32);
     fn get_volume(&self) -> f32;
     fn get_resolution(&self) -> (u32, u32);
+}
+
+pub trait Blankable {
+    fn set_blank_mode(&mut self, blank_mode: BlankMode);
+    fn get_blank_mode(&self) -> BlankMode;
 }
 
 pub trait ImageDataProvider {

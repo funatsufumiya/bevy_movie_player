@@ -1,7 +1,7 @@
 use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::render_resource::{Extent3d, TextureDimension}};
-use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::{CompressedImageDataProvider, ImageData, ImageDataProvider}, prelude::*};
+use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::{BlankMode, Blankable, CompressedImageDataProvider, ImageData, ImageDataProvider}, prelude::*};
 
 fn main() {
     App::new()
@@ -81,6 +81,10 @@ fn setup(
     // play all movies
     for movie_player in movie_players {
         movie_player.play(true, &time);
+        // movie_player.set_blank_mode(BlankMode::Transparent);
+        // movie_player.set_blank_mode(BlankMode::LastFrameOnPauseAndStop);
+        // movie_player.set_blank_mode(BlankMode::LastFrameOnPause_FirstFrameOnStop);
+        // movie_player.set_blank_mode(BlankMode::Black);
         // movie_player.play(false, &time);
     }
 
