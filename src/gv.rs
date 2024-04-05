@@ -259,9 +259,9 @@ impl<Reader: Read + Seek> ImageDataProvider for GVMoviePlayer<Reader> {
     fn get_image_data(&mut self, bevy_time: &Time) -> ImageData {
         match self.state {
             PlayingState::Stopped => {
-                // FIXME: slow?
+                // FIXME: slow? need cached for first and last frame?
                 let frame_or_not = if self.blank_mode == BlankMode::LastFrameOnPause_FirstFrameOnStop {
-                    self.gv.read_frame_at(Duration::from_secs(0)).ok()
+                    self.gv.read_frame(0).ok()
                 } else if self.blank_mode == BlankMode::LastFrameOnPauseAndStop {
                     self.gv.read_frame(self.gv.get_frame_count() - 1).ok()
                 } else {
@@ -280,7 +280,7 @@ impl<Reader: Read + Seek> ImageDataProvider for GVMoviePlayer<Reader> {
                 get_blank_frame_bgra(self.blank_mode, self.state, frame_data)
             }
             PlayingState::Paused => {
-                // FIXME: slow?
+                // FIXME: slow? need cached for first and last frame?
                 let last_frame = self.gv.read_frame_at(self.get_position(bevy_time)).ok();
                 let last_frame_data = if let Some(frame) = last_frame {
                     Some(ImageData {
@@ -336,9 +336,9 @@ impl<Reader: Read + Seek> CompressedImageDataProvider for GVMoviePlayer<Reader> 
     fn get_compressed_image_data(&mut self, bevy_time: &Time) -> ImageData {
         match self.state {
             PlayingState::Stopped => {
-                // FIXME: slow?
+                // FIXME: slow? need cached for first and last frame?
                 let frame_or_not = if self.blank_mode == BlankMode::LastFrameOnPause_FirstFrameOnStop {
-                    self.gv.read_frame_compressed_at(Duration::from_secs(0)).ok()
+                    self.gv.read_frame_compressed(0).ok()
                 } else if self.blank_mode == BlankMode::LastFrameOnPauseAndStop {
                     self.gv.read_frame_compressed(self.gv.get_frame_count() - 1).ok()
                 } else {
@@ -356,7 +356,7 @@ impl<Reader: Read + Seek> CompressedImageDataProvider for GVMoviePlayer<Reader> 
                 get_blank_frame_bgra(self.blank_mode, self.state, frame_data)
             }
             PlayingState::Paused => {
-                // FIXME: slow?
+                // FIXME: slow? need cached for first and last frame?
                 let last_frame = self.gv.read_frame_compressed_at(self.get_position(bevy_time)).ok();
                 let last_frame_data = if let Some(frame) = last_frame {
                     Some(ImageData {

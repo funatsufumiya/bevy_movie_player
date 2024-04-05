@@ -15,6 +15,7 @@ pub enum PlayingState {
 }
 
 // #[derive(Clone)]
+#[derive(Debug)]
 pub struct ImageData {
     pub data: Vec<u8>,
     pub format: TextureFormat,
