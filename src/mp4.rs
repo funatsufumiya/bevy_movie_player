@@ -39,31 +39,31 @@ pub fn load_mp4(path: &str) -> impl MoviePlayer {
 
 #[allow(unused_variables)] // FIXME: just for now
 impl<Reader: Read + Seek> MoviePlayer for Mp4MoviePlayer<Reader> {
-    fn play(&mut self, looped: bool, bevy_time: &Time) {
+    fn play(&mut self, looped: bool, bevy_elapsed_time: Duration) {
         todo!()
     }
 
-    fn pause(&mut self, bevy_time: &Time) {
+    fn pause(&mut self, bevy_elapsed_time: Duration) {
         todo!()
     }
 
-    fn stop(&mut self, bevy_time: &Time) {
+    fn stop(&mut self, bevy_elapsed_time: Duration) {
         todo!()
     }
 
-    fn seek(&mut self, to_time: Duration, bevy_time: &Time) {
+    fn seek(&mut self, to_time: Duration, bevy_elapsed_time: Duration) {
         todo!()
     }
 
-    fn update(&mut self, bevy_time: &Time) {
+    fn update(&mut self, bevy_elapsed_time: Duration) {
         todo!()
     }
 
-    fn set_image_data(&mut self, image: &mut Image, bevy_time: &Time) {
+    fn set_image_data(&mut self, image: &mut Image, bevy_elapsed_time: Duration) {
         todo!()
     }
 
-    fn get_image_data(&mut self, bevy_time: &Time) -> ImageData {
+    fn get_image_data(&mut self, bevy_elapsed_time: Duration) -> ImageData {
         todo!()
     }
 

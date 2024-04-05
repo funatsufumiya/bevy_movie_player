@@ -41,11 +41,8 @@ fn setup(
     mut image_handle: ResMut<ImageHandle>,
     mut movie_res: ResMut<MovieRes>,
     // mut asset_server: Res<AssetServer>,
-    time_res: Res<Time>,
+    // time: Res<Time>,
 ) {
-    // WORKAROUND
-    let time = time_res.clone();
-
     let movie_player = load_gv("test_assets/test.gv");
     // let movie_player = load_gv("test_assets/test-10px.gv");
     // let movie_player = load_gv("test_assets/countdown.gv");
@@ -58,14 +55,17 @@ fn setup(
     let movie_player = movie_res.movie_player.as_mut().unwrap();
 
     movie_player.set_loop_mode(LoopMode::Loop);
-    movie_player.play(&time);
-    // movie_player.play(false, &time);
+    movie_player.play();
 
     commands.spawn(Camera2dBundle::default());
 
     // texture from bytes
-    // let image_data = movie_player.get_image_data(&time);
-    let image_data = movie_player.get_compressed_image_data(&time);
+    // let image_data = movie_player.get_compressed_image_data(time.elapsed());
+
+    // WORKAROUND: to avoid panic: Using pixel_size for compressed textures is invalid
+    let image_data = movie_player.get_image_data();
+
+    println!("Image data: {:?}", image_data);
 
     let image = Image::new(
         Extent3d {
@@ -137,11 +137,8 @@ fn update(
         }
     }
 
-    // WORKAROUND
-    let time = time.clone();
-
     let movie_player = movie_res.movie_player.as_mut().unwrap();
-    movie_player.update(&time);
+    movie_player.update(time.elapsed());
 
     // get image from handle
     let image = images.get_mut(image_handle.handle.clone().unwrap()).unwrap();
@@ -149,7 +146,7 @@ fn update(
     // println!("Update image data with time: {}", time.elapsed_seconds());
 
     // movie_player.set_image_data(image, &time);
-    movie_player.set_compressed_image_data(image, &time);
+    movie_player.set_compressed_image_data(image);
 
     
     movie_res.last_update_time = Some(time.elapsed());

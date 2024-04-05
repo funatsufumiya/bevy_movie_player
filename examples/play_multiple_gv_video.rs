@@ -42,11 +42,8 @@ fn setup(
     mut image_handle: ResMut<ImageHandle>,
     mut movie_res: ResMut<MovieRes>,
     // mut asset_server: Res<AssetServer>,
-    time_res: Res<Time>,
+    time: Res<Time>,
 ) {
-    // WORKAROUND
-    let time = time_res.clone();
-
     // let movie_player = load_gv("test_assets/test.gv");
     // let movie_player = load_gv("test_assets/test-10px.gv");
     // let movie_player = load_gv("test_assets/countdown.gv");
@@ -82,7 +79,7 @@ fn setup(
     // play all movies
     for movie_player in movie_players {
         movie_player.set_loop_mode(LoopMode::Loop);
-        movie_player.play(&time);
+        movie_player.play();
 
         // movie_player.set_loop_mode(LoopMode::PauseAtEnd);
         // movie_player.set_blank_mode(BlankMode::Transparent);
@@ -90,7 +87,7 @@ fn setup(
         // movie_player.set_blank_mode(BlankMode::LastFrameOnPause_FirstFrameOnStop);
         // movie_player.set_blank_mode(BlankMode::LastFrameOnPause_TransparentOnStop);
         // movie_player.set_blank_mode(BlankMode::Black);
-        // movie_player.play(&time);
+        // movie_player.play();
     }
 
     commands.spawn(Camera2dBundle::default());
@@ -98,8 +95,10 @@ fn setup(
     // texture from bytes
     let mut image_datas = Vec::<ImageData>::new();
     for movie_player in &mut movie_res.movie_players {
-        // image_datas.push(movie_player.get_image_data(&time));
-        image_datas.push(movie_player.get_compressed_image_data(&time));
+        // image_datas.push(movie_player.get_compressed_image_data(time.elapsed()));
+
+        // WORKAROUND: to avoid panic: Using pixel_size for compressed textures is invalid
+        image_datas.push(movie_player.get_image_data());
     }
 
     let mut images = Vec::<Image>::new();
@@ -188,17 +187,14 @@ fn update(
         }
     }
 
-    // WORKAROUND
-    let time = time.clone();
-
     let movie_players = &mut movie_res.movie_players;
     let mut i = 0;
     for handle in &image_handle.handles {
         let movie_player = &mut movie_players[i];
-        movie_player.update(&time);
+        movie_player.update(time.elapsed());
         let image = images_res.get_mut(handle.clone()).unwrap();
         // movie_player.set_image_data(image, &time);
-        movie_player.set_compressed_image_data(image, &time);
+        movie_player.set_compressed_image_data(image);
         i += 1;
     }
 
@@ -222,7 +218,7 @@ fn update_fps(
 fn key_handler(
     mut movie_res: ResMut<MovieRes>,
     keyboard_input: Res<Input<KeyCode>>,
-    time: Res<Time>,
+    // time: Res<Time>,
 ) {
     let movie_players = &mut movie_res.movie_players;
     for movie_player in movie_players {
@@ -231,9 +227,9 @@ fn key_handler(
 
             // toggle play/pause
             match movie_player.get_state() {
-                PlayingState::Playing => movie_player.pause(&time),
-                PlayingState::Paused => movie_player.play(&time),
-                PlayingState::Stopped => movie_player.play(&time),
+                PlayingState::Playing => movie_player.pause(),
+                PlayingState::Paused => movie_player.play(),
+                PlayingState::Stopped => movie_player.play(),
             }
         }
         if keyboard_input.just_pressed(KeyCode::Return) {
@@ -241,18 +237,18 @@ fn key_handler(
             
             // toggle stop/play
             match movie_player.get_state() {
-                PlayingState::Playing => movie_player.stop(&time),
-                PlayingState::Paused => movie_player.stop(&time),
-                PlayingState::Stopped => movie_player.play(&time),
+                PlayingState::Playing => movie_player.stop(),
+                PlayingState::Paused => movie_player.stop(),
+                PlayingState::Stopped => movie_player.play(),
             }
         }
         if keyboard_input.just_pressed(KeyCode::Right) {
-            let pos = movie_player.get_position(&time);
-            movie_player.seek(pos + Duration::from_secs_f32(1.0), &time);
+            let pos = movie_player.get_position();
+            movie_player.seek(pos + Duration::from_secs_f32(1.0));
         }
         if keyboard_input.just_pressed(KeyCode::Left) {
-            let pos = movie_player.get_position(&time);
-            movie_player.seek(pos - Duration::from_secs_f32(1.0), &time);
+            let pos = movie_player.get_position();
+            movie_player.seek(pos - Duration::from_secs_f32(1.0));
         }
     }
 }
