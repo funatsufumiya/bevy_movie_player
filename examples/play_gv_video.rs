@@ -145,7 +145,7 @@ fn update(
     // println!("Update image data with time: {}", time.elapsed_seconds());
 
     // movie_player.set_image_data(image);
-    movie_player.set_compressed_image_data(image);
+    movie_player.set_compressed_image_data(image); // faster
 
     
     movie_res.last_update_time = Some(time.elapsed());

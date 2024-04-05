@@ -194,7 +194,7 @@ fn update(
         movie_player.update(time.elapsed());
         let image = images_res.get_mut(handle.clone()).unwrap();
         // movie_player.set_image_data(image);
-        movie_player.set_compressed_image_data(image);
+        movie_player.set_compressed_image_data(image); // faster
         i += 1;
     }
 
