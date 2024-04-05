@@ -12,6 +12,7 @@
 ## Known issues
 
 - Movie load FPS limitation is needed. (example code has 30fps limitation, but should use original thread in module)
+- Very slow FPS on debug build. Please use `--release` flag to check the performance.
 - Sound is not supported now.
 
 ## Planning
