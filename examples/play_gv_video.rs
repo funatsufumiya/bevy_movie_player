@@ -59,8 +59,7 @@ fn setup(
 
     commands.spawn(Camera2dBundle::default());
 
-    // texture from bytes
-    // let image_data = movie_player.get_compressed_image_data(time.elapsed());
+    // let image_data = movie_player.get_compressed_image_data();
 
     // WORKAROUND: to avoid panic: Using pixel_size for compressed textures is invalid
     let image_data = movie_player.get_image_data();

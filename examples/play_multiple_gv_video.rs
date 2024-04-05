@@ -95,7 +95,7 @@ fn setup(
     // texture from bytes
     let mut image_datas = Vec::<ImageData>::new();
     for movie_player in &mut movie_res.movie_players {
-        // image_datas.push(movie_player.get_compressed_image_data(time.elapsed()));
+        // image_datas.push(movie_player.get_compressed_image_data());
 
         // WORKAROUND: to avoid panic: Using pixel_size for compressed textures is invalid
         image_datas.push(movie_player.get_image_data());
