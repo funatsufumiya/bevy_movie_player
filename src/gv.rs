@@ -97,6 +97,8 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
         } else if self.state == PlayingState::Playing {
             self.state = PlayingState::Paused;
             self.pause_started_time = Some(bevy_time.elapsed());
+            self.seek_position = (bevy_time.elapsed() - self.play_started_time.unwrap()) + self.seek_position;
+            self.play_started_time = self.pause_started_time;
         }
     }
 
@@ -140,6 +142,7 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
     fn get_position(&self, bevy_time: &Time) -> Duration {
         match self.state {
             PlayingState::Stopped => Duration::from_secs(0),
+            // PlayingState::Paused => self.seek_position,
             PlayingState::Paused => self.seek_position,
             PlayingState::Playing => (bevy_time.elapsed() - self.play_started_time.unwrap()) + self.seek_position,
         }

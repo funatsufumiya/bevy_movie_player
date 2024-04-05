@@ -1,7 +1,7 @@
 use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::render_resource::{Extent3d, TextureDimension}};
-use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::{BlankMode, Blankable, CompressedImageDataProvider, ImageData, ImageDataProvider}, prelude::*};
+use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::{BlankMode, Blankable, CompressedImageDataProvider, ImageData, ImageDataProvider, PlayingState}, prelude::*};
 
 fn main() {
     App::new()
@@ -17,6 +17,7 @@ fn main() {
         })
         .add_systems(Startup, setup)
         .add_systems(Update, update)
+        .add_systems(Update, key_handler)
         .add_systems(Update, update_fps)
         .run();
 }
@@ -210,6 +211,37 @@ fn update_fps(
                 // Update the value of the second section
                 text.sections[1].value = format!("{value:.2}");
             }
+        }
+    }
+}
+
+fn key_handler(
+    mut movie_res: ResMut<MovieRes>,
+    keyboard_input: Res<Input<KeyCode>>,
+    time: Res<Time>,
+) {
+    let movie_players = &mut movie_res.movie_players;
+    for movie_player in movie_players {
+        if keyboard_input.just_pressed(KeyCode::Space) {
+            // movie_player.pause(&time);
+
+            // toggle play/pause
+            match movie_player.get_state() {
+                PlayingState::Playing => movie_player.pause(&time),
+                PlayingState::Paused => movie_player.play(false, &time),
+                PlayingState::Stopped => movie_player.play(false, &time),
+            }
+        }
+        if keyboard_input.just_pressed(KeyCode::Return) {
+            movie_player.stop(&time);
+        }
+        if keyboard_input.just_pressed(KeyCode::Right) {
+            let pos = movie_player.get_position(&time);
+            movie_player.seek(pos + Duration::from_secs_f32(1.0), &time);
+        }
+        if keyboard_input.just_pressed(KeyCode::Left) {
+            let pos = movie_player.get_position(&time);
+            movie_player.seek(pos - Duration::from_secs_f32(1.0), &time);
         }
     }
 }
