@@ -28,5 +28,6 @@ A movie player plugin for Bevy game engine.
 ## Planning
 
 - Support .mp4 format. (using https://github.com/funatsufumiya/rust-mp4)
+- Support Lottie format. (using https://github.com/msrd0/rlottie-rs)
 - Support other formats using `ffmpeg` or `gstreamer` as a feature. (example: 
 https://gist.github.com/pkupper/108eb8a712f479ecfdb1eaf9b86cd128 )
