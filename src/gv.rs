@@ -52,6 +52,24 @@ pub fn load_gv(path: &str) -> GVMoviePlayer<BufReader<File>> {
     }
 }
 
+/// Load a GV video from a reader
+pub fn load_gv_from_reader<R>(reader: R) -> GVMoviePlayer<R>
+    where R: Read + Seek
+{
+    let gv = GVVideo::load(reader);
+    
+    GVMoviePlayer {
+        gv,
+        state: PlayingState::Stopped,
+        bevy_elapsed_time: Duration::from_secs(0),
+        play_started_time: None,
+        pause_started_time: None,
+        seek_position: Duration::from_secs(0),
+        loop_mode: LoopMode::default(),
+        blank_mode: BlankMode::default(),
+    }
+}
+
 /// Load a GV video from a file (on memory)
 pub fn load_gv_on_memory(path: &str) -> GVMoviePlayer<Cursor<Vec<u8>>> {
     let file = File::open(path).unwrap();
