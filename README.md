@@ -13,7 +13,8 @@ A movie player plugin for Bevy game engine.
     - `.gv` has simple LZ4 compressed + BC1/BC2/BC3/BC7 texture format.
     - both disk stream and on memory stream are supported.
 - Lottie (lottie-json `.json`) format (using https://github.com/msrd0/rlottie-rs)
-    - supported from `0.2.1` or higher, and `lottie` feature flag is needed.
+    - supported from `0.2.1` or higher
+    - `lottie` feature flag is needed.
 
 ## Version compatibility
 
