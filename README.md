@@ -6,7 +6,7 @@ A movie player plugin for Bevy game engine.
 
 **WARN** Still in development, The API may change in the future.
 
-## Supported features
+## Supported movie formats
 
 - `.gv` format (see https://github.com/funatsufumiya/rust-gv-video).
     - possible to play video with alpha channel
