@@ -16,7 +16,7 @@ mp4 = { git = "https://github.com/funatsufumiya/rust-mp4", version = "0.1.0", op
 gv_video = { git = "https://github.com/funatsufumiya/rust-gv-video", version = "0.1.7" }
 openh264 = { version = "0.1.14", optional = true }
 # rlottie = { version = "0.5.2", optional = true }
-rlottie = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "ba520ec", version = "0.5.2", optional = true }
-rlottie-sys = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "ba520ec", version = "0.2.9", optional = true }
+rlottie = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "40daf8e", version = "0.5.2", optional = true }
+rlottie-sys = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "40daf8e", version = "0.2.9", optional = true }
 # rlottie-sys = { version = "0.2.9", optional = true }
 derivative = "2.2.0"

@@ -3006,7 +3006,7 @@ checksum = "05aaa8004b64fd573fc9d002f4e632d51ad4f026c2b5ba95fcb6c2f32c2c47d8"
 [[package]]
 name = "rlottie"
 version = "0.5.2"
-source = "git+https://github.com/funatsufumiya/rlottie-rs?rev=ba520ec#ba520ecca49f619062634b5acef2c8db3f7e03d5"
+source = "git+https://github.com/funatsufumiya/rlottie-rs?rev=40daf8e#40daf8ebbb49ad1757f1b51e44f07e8e979650bb"
 dependencies = [
  "rgb",
  "rlottie-sys",
@@ -3015,7 +3015,7 @@ dependencies = [
 [[package]]
 name = "rlottie-sys"
 version = "0.2.9"
-source = "git+https://github.com/funatsufumiya/rlottie-rs?rev=ba520ec#ba520ecca49f619062634b5acef2c8db3f7e03d5"
+source = "git+https://github.com/funatsufumiya/rlottie-rs?rev=40daf8e#40daf8ebbb49ad1757f1b51e44f07e8e979650bb"
 dependencies = [
  "bindgen 0.68.1",
  "pkg-config",
