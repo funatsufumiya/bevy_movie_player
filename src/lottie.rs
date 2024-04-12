@@ -400,12 +400,15 @@ mod tests {
     #[test]
     fn it_works() {
         let mut movie = load_lottie("test_assets/test.json");
+        let size = movie.get_resolution();
+        let duration = movie.get_duration();
+        assert_eq!(size, (500, 500));
+        assert_eq!(duration, Duration::from_secs_f64(9.159999847));
         movie.play();
         movie.pause();
         movie.stop();
     }
 
-    // TODO: add duration test
     // TODO: add loop test
     // TODO: add seek test
     // TODO: add image data test
