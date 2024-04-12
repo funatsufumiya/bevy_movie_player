@@ -96,7 +96,7 @@ fn setup(
     
     commands.spawn(SpriteBundle {
         sprite: Sprite {
-            custom_size: Some(Vec2::new(640.0, 360.0)),
+            custom_size: Some(Vec2::new(360.0, 360.0)),
             ..default()
         },
         texture: image_handle.handle.clone().unwrap(),

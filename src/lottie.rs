@@ -402,8 +402,8 @@ mod tests {
         let mut movie = load_lottie("test_assets/test.json");
         let size = movie.get_resolution();
         let duration = movie.get_duration();
-        assert_eq!(size, (500, 500));
-        assert_eq!(duration, Duration::from_secs_f64(9.159999847));
+        assert_eq!(size, (1024, 1024));
+        assert_eq!(duration, Duration::from_secs_f64(3.0));
         movie.play();
         movie.pause();
         movie.stop();
