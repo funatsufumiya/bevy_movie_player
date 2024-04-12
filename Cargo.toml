@@ -3,10 +3,20 @@ name = "bevy_movie_player"
 version = "0.2.0"
 edition = "2021"
 
+[features]
+default = []
+lottie = [ "rlottie", "rlottie-sys" ]
+mp4 = [ "dep:mp4", "openh264" ]
+
 [dependencies]
 bevy = { version = "0.13" }
 # bevy = { version = "0.12.1", features = ["trace_tracy"] }
-mp4 = { git = "https://github.com/funatsufumiya/rust-mp4", version = "0.1.0" }
+mp4 = { git = "https://github.com/funatsufumiya/rust-mp4", version = "0.1.0", optional = true }
+# mp4 = { version = "0.14.0", optional = true }
 gv_video = { git = "https://github.com/funatsufumiya/rust-gv-video", version = "0.1.7" }
-# mp4 = { version = "0.14.0" }
-openh264 = "0.1.14"
+openh264 = { version = "0.1.14", optional = true }
+# rlottie = { version = "0.5.2", optional = true }
+rlottie = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "ba520ec", version = "0.5.2", optional = true }
+rlottie-sys = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "ba520ec", version = "0.2.9", optional = true }
+# rlottie-sys = { version = "0.2.9", optional = true }
+derivative = "2.2.0"
