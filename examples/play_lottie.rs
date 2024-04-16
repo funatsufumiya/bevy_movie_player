@@ -1,48 +1,74 @@
-#[cfg(feature = "lottie")]
 use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
-#[cfg(feature = "lottie")]
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension}}};
-use bevy_movie_player::lottie::LottieMoviePlayer;
+
+use bevy_asset_loader::asset_collection::AssetCollection;
 #[cfg(feature = "lottie")]
-use bevy_movie_player::{movie_player::{CompressedImageDataProvider, ImageDataProvider, LoopMode}, prelude::*};
+use bevy_movie_player::{lottie::LottieMovie, movie_player::{CompressedImageDataProvider, ImageDataProvider, LoopMode}, prelude::*};
+#[cfg(feature = "lottie")]
+use bevy_movie_player::lottie::LottieMoviePlayer;
 #[cfg(feature = "lottie")]
 use bevy_movie_player::lottie::load_lottie;
 
 #[cfg(feature = "lottie")]
 fn main() {
+    use bevy_asset_loader::loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt};
+
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(MoviePlayerPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
+        .init_state::<AssetLoadingState>()
+        .add_loading_state(
+            LoadingState::new(AssetLoadingState::Loading)
+                .continue_to_state(AssetLoadingState::Loaded)
+                .load_collection::<MovieAssets>()
+        )
         .insert_resource(ImageHandle {
             handle: None,
         })
         .insert_resource(MovieRes {
             last_update_time: None,
-            movie_player: None,
         })
-        .add_systems(Startup, setup)
-        .add_systems(Update, update)
+        .add_systems(OnEnter(AssetLoadingState::Loaded), setup)
+        .add_systems(Update, update.run_if(is_asset_ready))
         .add_systems(Update, update_fps)
         .run();
+}
+
+#[cfg(feature = "lottie")]
+#[derive(AssetCollection, Resource)]
+pub struct MovieAssets {
+  #[asset(path = "test.json")]
+  pub test: Handle<LottieMovie>,
 }
 
 #[cfg(feature = "lottie")]
 #[derive(Resource)]
 struct MovieRes {
     last_update_time: Option<Duration>,
-    movie_player: Option<LottieMoviePlayer>,
 }
 
-#[cfg(feature = "lottie")]
 #[derive(Resource)]
 struct ImageHandle {
     handle: Option<Handle<Image>>,
 }
 
-#[cfg(feature = "lottie")]
+#[derive(Clone, Eq, PartialEq, Debug, Hash, Default, States)]
+pub enum AssetLoadingState {
+    #[default]
+    Loading,
+    Loaded,
+}
+
 #[derive(Component)]
 struct FpsText;
+
+fn is_asset_ready (
+    image_handle_res: Res<ImageHandle>,
+) -> bool
+{
+    image_handle_res.handle.is_some() 
+}
 
 #[cfg(feature = "lottie")]
 fn setup(
@@ -50,39 +76,25 @@ fn setup(
     mut images: ResMut<Assets<Image>>,
     mut image_handle: ResMut<ImageHandle>,
     mut movie_res: ResMut<MovieRes>,
+    mut movie_assets: ResMut<MovieAssets>,
+    mut assets: ResMut<Assets<LottieMovie>>,
     // mut asset_server: Res<AssetServer>,
     // time: Res<Time>,
 ) {
-    let movie_player = load_lottie("test_assets/test.json");
-    movie_res.movie_player = Some(movie_player);
+    use bevy_movie_player::movie_player::ImageCreator;
 
-    let movie_player = movie_res.movie_player.as_mut().unwrap();
+
+    let lottie_movie = assets.get_mut(&movie_assets.test).unwrap();
+    let movie_player = &mut lottie_movie.player;
 
     movie_player.set_loop_mode(LoopMode::Loop);
     movie_player.play();
 
     commands.spawn(Camera2dBundle::default());
 
-    // let image_data = movie_player.get_compressed_image_data();
+    let handle = movie_player.register_image_handle(&mut images);
 
-    // WORKAROUND: to avoid panic: Using pixel_size for compressed textures is invalid
-    let image_data = movie_player.get_image_data();
-
-    // println!("Image data: {:?}", image_data);
-
-    let image = Image::new(
-        Extent3d {
-            width: image_data.get_width(),
-            height: image_data.get_height(),
-            depth_or_array_layers: 1,
-        },
-        TextureDimension::D2,
-        image_data.data,
-        image_data.format,
-        RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD,
-    );
-
-    image_handle.handle = Some(images.add(image));
+    image_handle.handle = Some(handle);
 
     // background plane
     commands.spawn(SpriteBundle {
@@ -130,6 +142,8 @@ fn update(
     mut images: ResMut<Assets<Image>>,
     image_handle: Res<ImageHandle>,
     mut movie_res: ResMut<MovieRes>,
+    mut movie_assets: ResMut<MovieAssets>,
+    mut assets: ResMut<Assets<LottieMovie>>,
     time: Res<Time>,
 ) {
     // skip update to be fps 30 (msec 33)
@@ -141,7 +155,8 @@ fn update(
         }
     }
 
-    let movie_player = movie_res.movie_player.as_mut().unwrap();
+    let lottie_movie = assets.get_mut(&movie_assets.test).unwrap();
+    let movie_player = &mut lottie_movie.player;
     movie_player.update(time.elapsed());
 
     // get image from handle
@@ -168,4 +183,9 @@ fn update_fps(
             }
         }
     }
+}
+
+#[cfg(not(feature = "lottie"))]
+fn main() {
+    println!("This example requires `--features lottie`");
 }

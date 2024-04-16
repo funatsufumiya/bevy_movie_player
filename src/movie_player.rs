@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::render_resource::TextureFormat};
+use bevy::{asset::AssetLoader, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension, TextureFormat}}};
 use std::{fmt, time::Duration};
 
 // #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -117,6 +117,37 @@ pub trait CompressedImageDataProvider {
     fn set_compressed_image_data(&mut self, image: &mut Image);
     /// returns image data with compressed texture format (like BC7Srgb)
     fn get_compressed_image_data(&mut self) -> ImageData;
+}
+
+pub trait ImageCreator {
+    fn create_image(&mut self) -> Image;
+    fn register_image_handle(&mut self, images: &mut ResMut<Assets<Image>>) -> Handle<Image> {
+        let mut image = self.create_image();
+        let handle = images.add(image);
+        return handle;
+    }
+}
+
+impl<U> ImageCreator for U
+where U: ImageDataProvider
+{
+    fn create_image(&mut self) -> Image {
+        let image_data = self.get_image_data();
+
+        let image = Image::new(
+            Extent3d {
+                width: image_data.get_width(),
+                height: image_data.get_height(),
+                depth_or_array_layers: 1,
+            },
+            TextureDimension::D2,
+            image_data.data,
+            image_data.format,
+            RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD,
+        );
+    
+        return image; 
+    }
 }
 
 pub trait StateChecker {

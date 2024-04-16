@@ -1,6 +1,7 @@
 use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension}}};
+use bevy_asset_loader::loading_state::LoadingState;
 use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::{BlankMode, Blankable, CompressedImageDataProvider, ImageData, ImageDataProvider, LoopMode, PlayingState}, prelude::*};
 
 fn main() {
@@ -35,6 +36,13 @@ struct ImageHandle {
 
 #[derive(Component)]
 struct FpsText;
+
+fn is_asset_ready (
+    image_handle_res: Res<ImageHandle>,
+) -> bool
+{
+    image_handle_res.handles.len() > 0
+}
 
 fn setup(
     mut commands: Commands,

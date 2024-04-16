@@ -1,6 +1,16 @@
+use bevy::asset::io::Reader;
+use bevy::asset::AssetLoader;
+use bevy::asset::AssetPath;
+use bevy::asset::AsyncReadExt;
+use bevy::asset::LoadContext;
+use bevy::log::tracing_subscriber::field::debug;
 use bevy::prelude::*;
+use bevy::render::render_asset::RenderAssetUsages;
 use bevy::render::render_resource::Extent3d;
+use bevy::render::render_resource::TextureDimension;
 use bevy::render::render_resource::TextureFormat;
+use bevy::utils::BoxedFuture;
+use derivative::Derivative;
 use gv_video::get_bgra_vec_from_frame;
 use gv_video::GVVideo;
 use gv_video::GVFormat;
@@ -20,9 +30,10 @@ use std::io::BufReader;
 use std::io::Cursor;
 use std::io::Read;
 use std::io::Seek;
+use std::path::Path;
 use std::time::Duration;
+use bevy::prelude::TypePath;
 
-#[derive(Debug)]
 pub struct GVMoviePlayer<Reader: Read + Seek> {
     pub gv: GVVideo<Reader>,
     state: PlayingState,
@@ -32,6 +43,81 @@ pub struct GVMoviePlayer<Reader: Read + Seek> {
     seek_position: Duration,
     loop_mode: LoopMode,
     blank_mode: BlankMode,
+}
+
+#[derive(Asset, TypePath, Derivative)]
+#[derivative(Debug)]
+pub struct GVMovie {
+    #[derivative(Debug="ignore")]
+    pub player: GVMoviePlayer<BufReader<File>>,
+}
+
+#[derive(Asset, TypePath, Derivative)]
+#[derivative(Debug)]
+pub struct GVMovieOnMemory {
+    #[derivative(Debug="ignore")]
+    pub player: GVMoviePlayer<Cursor<Vec<u8>>>,
+}
+
+#[derive(Default)]
+pub struct GVMovieLoader;
+
+#[derive(Default)]
+pub struct GVMovieOnMemoryLoader;
+
+impl AssetLoader for GVMovieLoader {
+    type Asset = GVMovie;
+    type Settings = ();
+    type Error = std::io::Error;
+  
+    fn load<'a>(
+      &'a self,
+      _reader: &'a mut Reader<'_>,
+      _settings: &'a (),
+      load_context: &'a mut LoadContext<'_>,
+    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
+      Box::pin(async move {
+        let asset_dir = "assets"; // FIXME: just WORKAROUND
+        let p = Path::new(asset_dir).join(load_context.path());
+        let asset_path = p.to_str().unwrap();
+        // TODO: error handling
+        let player = load_gv(asset_path);
+        Ok(GVMovie {
+          player,
+        })
+      })
+    }
+  
+    fn extensions(&self) -> &[&str] {
+      &["gv"]
+    }
+}
+
+impl AssetLoader for GVMovieOnMemoryLoader {
+    type Asset = GVMovieOnMemory;
+    type Settings = ();
+    type Error = std::io::Error;
+  
+    fn load<'a>(
+      &'a self,
+      reader: &'a mut Reader<'_>,
+      _settings: &'a (),
+      _load_context: &'a mut LoadContext<'_>,
+    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
+      Box::pin(async move {
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).await?;
+        // TODO: error handling
+        let player = load_gv_from_reader(Cursor::new(bytes));
+        Ok(GVMovieOnMemory {
+          player,
+        })
+      })
+    }
+  
+    fn extensions(&self) -> &[&str] {
+      &["gv"]
+    }
 }
 
 /// Load a GV video from a file (disk stream)

@@ -1,6 +1,11 @@
+use bevy::asset::io::Reader;
+use bevy::asset::AssetLoader;
+use bevy::asset::AsyncReadExt;
+use bevy::asset::LoadContext;
 use bevy::prelude::*;
 use bevy::render::render_resource::Extent3d;
 use bevy::render::render_resource::TextureFormat;
+use bevy::utils::BoxedFuture;
 use derivative::Derivative;
 use rlottie::Bgra;
 
@@ -23,8 +28,9 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Duration;
 
-#[derive(Derivative)]
+#[derive(Derivative, Asset, TypePath)]
 #[derivative(Debug)]
+
 pub struct LottieMoviePlayer {
     pub lottie: Arc<Mutex<LottieAnimation>>,
     #[derivative(Debug="ignore")]
@@ -37,6 +43,47 @@ pub struct LottieMoviePlayer {
     loop_mode: LoopMode,
     blank_mode: BlankMode,
 }
+
+#[derive(Asset, TypePath, Derivative)]
+#[derivative(Debug)]
+pub struct LottieMovie {
+    #[derivative(Debug="ignore")]
+    pub player: LottieMoviePlayer,
+}
+
+#[derive(Default)]
+pub struct LottieMovieLoader;
+
+impl AssetLoader for LottieMovieLoader {
+    type Asset = LottieMovie;
+    type Settings = ();
+    type Error = std::io::Error;
+  
+    fn load<'a>(
+      &'a self,
+      reader: &'a mut Reader<'_>,
+      _settings: &'a (),
+      _load_context: &'a mut LoadContext<'_>,
+    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
+      Box::pin(async move {
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).await?;
+        let cache_key = "".to_string();
+        let resource_path = "".to_string();
+        let player = load_lottie_from_data(bytes, cache_key, resource_path);
+        // println!("Loaded Lottie {:?}", player);
+        // println!("duration: {:?}", player.get_duration());
+        Ok(LottieMovie {
+          player,
+        })
+      })
+    }
+  
+    fn extensions(&self) -> &[&str] {
+      &["json"]
+    }
+  }
+  
 
 /// Load a Lottie movie from a file
 pub fn load_lottie(path: &str) -> LottieMoviePlayer {

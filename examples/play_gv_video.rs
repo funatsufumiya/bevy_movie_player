@@ -1,30 +1,49 @@
 use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension}}};
-use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::{CompressedImageDataProvider, ImageDataProvider, LoopMode}, prelude::*};
+use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt}};
+use bevy_movie_player::{gv::{self, load_gv, load_gv_on_memory, GVMovie, GVMoviePlayer}, movie_player::{CompressedImageDataProvider, ImageCreator, ImageDataProvider, LoopMode}, prelude::*};
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(MoviePlayerPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin::default())
+        .init_state::<AssetLoadingState>()
+        .add_loading_state(
+            LoadingState::new(AssetLoadingState::Loading)
+                .continue_to_state(AssetLoadingState::Loaded)
+                .load_collection::<MovieAssets>()
+        )
         .insert_resource(ImageHandle {
             handle: None,
         })
         .insert_resource(MovieRes {
             last_update_time: None,
-            movie_player: None,
         })
-        .add_systems(Startup, setup)
-        .add_systems(Update, update)
+        .add_systems(OnEnter(AssetLoadingState::Loaded), setup)
+        // .add_systems(Update, setup.run_if(setup_needed)) // WORKAROUND
+        .add_systems(Update, update.run_if(is_asset_ready))
         .add_systems(Update, update_fps)
         .run();
 }
+
+#[derive(Clone, Eq, PartialEq, Debug, Hash, Default, States)]
+pub enum AssetLoadingState {
+    #[default]
+    Loading,
+    Loaded,
+}
+
+#[derive(AssetCollection, Resource)]
+pub struct MovieAssets {
+  #[asset(path = "test.gv")]
+  pub test: Handle<GVMovie>,
+}
+
 #[derive(Resource)]
 struct MovieRes {
     last_update_time: Option<Duration>,
-    movie_player: Option<GVMoviePlayer<BufReader<File>>>, // for disk stream
-    // movie_player: Option<GVMoviePlayer<Cursor<Vec<u8>>>>, // for on memory
 }
 
 #[derive(Resource)]
@@ -35,50 +54,34 @@ struct ImageHandle {
 #[derive(Component)]
 struct FpsText;
 
+fn is_asset_ready (
+    image_handle_res: Res<ImageHandle>,
+) -> bool
+{
+    image_handle_res.handle.is_some() 
+}
+
 fn setup(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
-    mut image_handle: ResMut<ImageHandle>,
+    mut image_handle_res: ResMut<ImageHandle>,
     mut movie_res: ResMut<MovieRes>,
+    mut movie_assets: ResMut<MovieAssets>,
+    mut assets: ResMut<Assets<GVMovie>>,
     // mut asset_server: Res<AssetServer>,
     // time: Res<Time>,
 ) {
-    let movie_player = load_gv("test_assets/test.gv");
-    // let movie_player = load_gv("test_assets/test-10px.gv");
-    // let movie_player = load_gv("test_assets/countdown.gv");
-    // let movie_player = load_gv("test_assets/alpha-countdown.gv");
-    // let movie_player = load_gv("test_assets/alpha-countdown-blue.gv");
-    // let movie_player = load_gv("test_assets/alpha-countdown-yellow.gv");
-    // let movie_player = load_gv_on_memory("test_assets/alpha-countdown-yellow.gv"); // for on memory
-    movie_res.movie_player = Some(movie_player);
 
-    let movie_player = movie_res.movie_player.as_mut().unwrap();
+    let gv_movie = assets.get_mut(&movie_assets.test).unwrap();
+    let movie_player = &mut gv_movie.player;
 
     movie_player.set_loop_mode(LoopMode::Loop);
     movie_player.play();
 
     commands.spawn(Camera2dBundle::default());
 
-    // let image_data = movie_player.get_compressed_image_data();
-
-    // WORKAROUND: to avoid panic: Using pixel_size for compressed textures is invalid
-    let image_data = movie_player.get_image_data();
-
-    // println!("Image data: {:?}", image_data);
-
-    let image = Image::new(
-        Extent3d {
-            width: image_data.get_width(),
-            height: image_data.get_height(),
-            depth_or_array_layers: 1,
-        },
-        TextureDimension::D2,
-        image_data.data,
-        image_data.format,
-        RenderAssetUsages::MAIN_WORLD | RenderAssetUsages::RENDER_WORLD,
-    );
-
-    image_handle.handle = Some(images.add(image));
+    let image_handle = movie_player.register_image_handle(&mut images);
+    image_handle_res.handle = Some(image_handle);
 
     // background plane
     commands.spawn(SpriteBundle {
@@ -95,7 +98,7 @@ fn setup(
             custom_size: Some(Vec2::new(640.0, 360.0)),
             ..default()
         },
-        texture: image_handle.handle.clone().unwrap(),
+        texture: image_handle_res.handle.clone().unwrap(),
         ..default()
     });
 
@@ -125,6 +128,8 @@ fn update(
     mut images: ResMut<Assets<Image>>,
     image_handle: Res<ImageHandle>,
     mut movie_res: ResMut<MovieRes>,
+    mut movie_assets: ResMut<MovieAssets>,
+    mut assets: ResMut<Assets<GVMovie>>,
     time: Res<Time>,
 ) {
     // skip update to be fps 30 (msec 33)
@@ -136,7 +141,12 @@ fn update(
         }
     }
 
-    let movie_player = movie_res.movie_player.as_mut().unwrap();
+    let gv_movie = assets.get_mut(&movie_assets.test).unwrap();
+    let movie_player = &mut gv_movie.player;
+
+    // mut asset_server: Res<AssetServer>,
+    // time: Res<Time>,
+
     movie_player.update(time.elapsed());
 
     // get image from handle
