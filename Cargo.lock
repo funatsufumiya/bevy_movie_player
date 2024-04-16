@@ -2062,11 +2062,13 @@ dependencies = [
 
 [[package]]
 name = "gv_video"
-version = "0.1.7"
-source = "git+https://github.com/funatsufumiya/rust-gv-video#31189b0b18c250f178510e5dac26eef626fd0daa"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "10a9041ee6a44636f6ff292420190c5538371fbc232224257dd00f7cb6e03fcf"
 dependencies = [
  "byteorder",
  "lz4_flex",
+ "paste",
  "texture2ddecoder",
 ]
 
@@ -3299,8 +3301,9 @@ dependencies = [
 
 [[package]]
 name = "texture2ddecoder"
-version = "0.0.6"
-source = "git+https://github.com/autergame/texture2ddecoder#6a5e8eaa8a146a0ed117fc245ebfbefa06abe8a5"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "54f0e5ca5dceb9b44d0f376de51782277c25fb42ffe1dad08d847f3a156d26d9"
 dependencies = [
  "paste",
 ]

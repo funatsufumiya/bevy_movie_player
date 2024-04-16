@@ -525,7 +525,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let mut movie = load_gv("test_assets/test.gv");
+        let mut movie = load_gv("assets/test.gv");
         movie.play();
         movie.pause();
         movie.stop();

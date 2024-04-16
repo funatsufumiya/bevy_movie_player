@@ -32,6 +32,8 @@ mod tests {
     #[test]
     fn it_works() {
         App::new()
+            .add_plugins(MinimalPlugins)
+            .add_plugins(AssetPlugin::default())
             .add_plugins(MoviePlayerPlugin)
             .update(); // run once
     }
