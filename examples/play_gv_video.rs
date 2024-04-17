@@ -2,7 +2,7 @@ use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension}}};
 use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt}};
-use bevy_movie_player::{gv::{self, load_gv, load_gv_on_memory, GVMovie, GVMoviePlayer}, movie_player::{CompressedImageDataProvider, ImageCreator, ImageDataProvider, LoopMode}, prelude::*};
+use bevy_movie_player::{gv::{self, load_gv, load_gv_on_memory, GVMovie, GVMovieOnMemory, GVMoviePlayer}, movie_player::{CompressedImageDataProvider, ImageCreator, ImageDataProvider, LoopMode}, prelude::*};
 
 fn main() {
     App::new()
@@ -39,6 +39,10 @@ pub enum AssetLoadingState {
 pub struct MovieAssets {
   #[asset(path = "test.gv")]
   pub test: Handle<GVMovie>,
+
+  // // if you want to load on memory:
+  // #[asset(path = "test.gv")]
+  // pub test: Handle<GVMovieOnMemory>,
 }
 
 #[derive(Resource)]
@@ -68,6 +72,7 @@ fn setup(
     mut movie_res: ResMut<MovieRes>,
     mut movie_assets: ResMut<MovieAssets>,
     mut assets: ResMut<Assets<GVMovie>>,
+    // mut assets: ResMut<Assets<GVMovieOnMemory>>,
     // mut asset_server: Res<AssetServer>,
     // time: Res<Time>,
 ) {
@@ -130,6 +135,7 @@ fn update(
     mut movie_res: ResMut<MovieRes>,
     mut movie_assets: ResMut<MovieAssets>,
     mut assets: ResMut<Assets<GVMovie>>,
+    // mut assets: ResMut<Assets<GVMovieOnMemory>>,
     time: Res<Time>,
 ) {
     // skip update to be fps 30 (msec 33)
