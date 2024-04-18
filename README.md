@@ -8,13 +8,14 @@ A movie player plugin for Bevy game engine.
 
 ## Supported movie formats
 
-- `.gv` format (see https://github.com/funatsufumiya/rust-gv-video).
+- `.gv` format
+    - using [rust-gv-video](https://github.com/funatsufumiya/rust-gv-video).
     - alpha channel support.
     - `.gv` has simple LZ4 compressed + BC1/BC2/BC3/BC7 texture format.
     - both disk stream and on memory stream are supported.
-- Lottie (lottie-json `.json`) format (using https://github.com/msrd0/rlottie-rs)
+- Lottie (lottie-json `.json`) format (`--features lottie`)
+    - using [rlottie-rs](https://github.com/msrd0/rlottie-rs)
     - supported from `0.2.1` or higher
-    - `lottie` feature flag is needed.
 
 ## Version compatibility
 
