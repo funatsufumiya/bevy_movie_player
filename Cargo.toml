@@ -11,6 +11,7 @@ bevy_asset_loader = "0.20"
 default = []
 lottie = [ "rlottie", "rlottie-sys" ]
 mp4 = [ "dep:mp4", "openh264" ]
+disable-json-extension-for-lottie = []
 
 [dependencies]
 bevy = { version = "0.13", default-features = false, features = ["bevy_asset", "bevy_render"] }

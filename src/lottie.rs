@@ -80,7 +80,15 @@ impl AssetLoader for LottieMovieLoader {
     }
   
     fn extensions(&self) -> &[&str] {
-      &["json"]
+      #[cfg(not(feature = "disable-json-extension-for-lottie"))]
+      {
+          &["json", "lottie.json"]
+      }
+
+      #[cfg(feature = "disable-json-extension-for-lottie")]
+      {
+            &["lottie.json"]
+      } 
     }
   }
   
