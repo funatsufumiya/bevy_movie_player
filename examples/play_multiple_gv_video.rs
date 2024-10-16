@@ -66,11 +66,21 @@ fn setup(
     // let mut movie_players = Vec::<GVMoviePlayer<Cursor<Vec<u8>>>>::new();
 
     // for disk stream
-    movie_players.push(load_gv("test_assets/alpha-countdown.gv"));
-    movie_players.push(load_gv("test_assets/alpha-countdown-red.gv"));
-    movie_players.push(load_gv("test_assets/alpha-countdown-green.gv"));
-    movie_players.push(load_gv("test_assets/alpha-countdown-blue.gv"));
-    movie_players.push(load_gv("test_assets/alpha-countdown-yellow.gv"));
+    // check if the file exists
+    if !std::path::Path::new("test_assets/alpha-countdown.gv").exists() {
+        println!("test_assets/alpha-countdown.gv not found");
+        println!("using test.gv instead");
+        movie_players.push(load_gv("assets/test.gv"));
+        movie_players.push(load_gv("assets/test.gv"));
+        movie_players.push(load_gv("assets/test.gv"));
+        movie_players.push(load_gv("assets/test.gv"));
+    } else {
+        movie_players.push(load_gv("test_assets/alpha-countdown.gv"));
+        movie_players.push(load_gv("test_assets/alpha-countdown-red.gv"));
+        movie_players.push(load_gv("test_assets/alpha-countdown-green.gv"));
+        movie_players.push(load_gv("test_assets/alpha-countdown-blue.gv"));
+        movie_players.push(load_gv("test_assets/alpha-countdown-yellow.gv"));
+    }
 
     // for on memory
     // movie_players.push(load_gv_on_memory("test_assets/alpha-countdown.gv"));
@@ -200,7 +210,7 @@ fn update(
     for handle in &image_handle.handles {
         let movie_player = &mut movie_players[i];
         movie_player.update(time.elapsed());
-        let image = images_res.get_mut(handle.clone()).unwrap();
+        let image = images_res.get_mut(&handle.clone()).unwrap();
         // movie_player.set_image_data(image);
         movie_player.set_compressed_image_data(image); // faster
         i += 1;

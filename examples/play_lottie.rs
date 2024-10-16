@@ -161,7 +161,7 @@ fn update(
 
     // get image from handle
     let handle = image_handle.handle.clone().unwrap();
-    let image = images.get_mut(handle).unwrap();
+    let image = images.get_mut(&handle).unwrap();
 
     // println!("Update image data with time: {}", time.elapsed_seconds());
 
