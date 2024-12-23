@@ -14,7 +14,11 @@ mp4 = [ "dep:mp4", "openh264" ]
 disable-json-extension-for-lottie = []
 
 [dependencies]
-bevy = { version = "0.15", default-features = false, features = ["bevy_asset", "bevy_render"] }
+bevy = { version = "0.15", default-features = false, features = [
+    "bevy_asset",
+    "bevy_render",
+] }
+bevy_internal = { version = "0.15", features = [ "bevy_image" ]}
 # bevy = { version = "0.12.1", features = ["trace_tracy"] }
 mp4 = { git = "https://github.com/funatsufumiya/rust-mp4", version = "0.1.0", optional = true }
 # mp4 = { version = "0.14.0", optional = true }
