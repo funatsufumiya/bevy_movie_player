@@ -69,7 +69,7 @@ fn setup(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
     mut image_handle_res: ResMut<ImageHandle>,
-    mut movie_res: ResMut<MovieRes>,
+    mut _movie_res: ResMut<MovieRes>,
     mut movie_assets: ResMut<MovieAssets>,
     mut assets: ResMut<Assets<GVMovie>>,
     // mut assets: ResMut<Assets<GVMovieOnMemory>>,
@@ -83,50 +83,48 @@ fn setup(
     movie_player.set_loop_mode(LoopMode::Loop);
     movie_player.play();
 
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d::default());
 
     let image_handle = movie_player.register_image_handle(&mut images);
     image_handle_res.handle = Some(image_handle);
 
     // background plane
-    commands.spawn(SpriteBundle {
-        sprite: Sprite {
-            color: Color::rgb(0.25, 0.25, 0.75),
+    commands.spawn((
+        Sprite {
+            color: Color::linear_rgb(0.25, 0.25, 0.75),
             custom_size: Some(Vec2::new(800.0, 600.0)),
             ..default()
         },
-        ..default()
-    });
-    
-    commands.spawn(SpriteBundle {
-        sprite: Sprite {
-            custom_size: Some(Vec2::new(640.0, 360.0)),
+        Transform {
+            translation: Vec3::new(0.0, 0.0, 1.0),
             ..default()
         },
-        texture: image_handle_res.handle.clone().unwrap(),
-        ..default()
-    });
+    ));
+    
+    commands.spawn((
+        Sprite {
+            custom_size: Some(Vec2::new(640.0, 360.0)),
+            image: image_handle_res.handle.clone().unwrap(),
+            ..default()
+        },
+        Transform {
+            translation: Vec3::new(0.0, 0.0, 1.1),
+            ..default()
+        },
+    ));
 
     // fps text
     commands.spawn((
-        TextBundle::from_sections([
-            TextSection::new(
-                "FPS: ",
-                TextStyle {
-                    font_size: 30.0,
-                    ..default()
-                },
-            ),
-            TextSection::new(
-                "0",
-                TextStyle {
-                    font_size: 30.0,
-                    ..default()
-                },
-            ),
-        ]),
-        FpsText,
-    ));
+        Text::new("FPS: "),
+        TextFont { font_size: 30.0, ..default() },
+    )).with_children(|parent| {
+        parent.spawn(
+        (
+            TextSpan::new("0"),
+            TextFont { font_size: 30.0, ..default() },
+            FpsText,
+        ));
+    });
 }
 
 fn update(
@@ -169,13 +167,13 @@ fn update(
 
 fn update_fps(
     diagnostics: Res<DiagnosticsStore>,
-    mut query: Query<&mut Text, With<FpsText>>,
+    mut query: Query<&mut TextSpan, With<FpsText>>,
 ) {
     for mut text in &mut query {
         if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
             if let Some(value) = fps.smoothed() {
                 // Update the value of the second section
-                text.sections[1].value = format!("{value:.2}");
+                text.0 = format!("{value:.2}");
             }
         }
     }

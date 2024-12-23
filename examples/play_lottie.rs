@@ -90,51 +90,49 @@ fn setup(
     movie_player.set_loop_mode(LoopMode::Loop);
     movie_player.play();
 
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d::default());
 
     let handle = movie_player.register_image_handle(&mut images);
 
     image_handle.handle = Some(handle);
 
     // background plane
-    commands.spawn(SpriteBundle {
-        sprite: Sprite {
-            color: Color::rgb(0.25, 0.25, 0.75),
+    commands.spawn((
+        Sprite {
+            color: Color::linear_rgb(0.25, 0.25, 0.75),
             custom_size: Some(Vec2::new(800.0, 600.0)),
             ..default()
         },
-        ..default()
-    });
-    
-    commands.spawn(SpriteBundle {
-        sprite: Sprite {
+        Transform {
+            translation: Vec3::new(0.0, 0.0, 1.0),
+            ..default()
+        },
+    ));
+
+    commands.spawn((
+        Sprite {
+            image: image_handle.handle.clone().unwrap(),
             custom_size: Some(Vec2::new(360.0, 360.0)),
             ..default()
         },
-        texture: image_handle.handle.clone().unwrap(),
-        ..default()
-    });
+        Transform {
+            translation: Vec3::new(0.0, 0.0, 1.1),
+            ..default()
+        },
+    ));
 
     // fps text
     commands.spawn((
-        TextBundle::from_sections([
-            TextSection::new(
-                "FPS: ",
-                TextStyle {
-                    font_size: 30.0,
-                    ..default()
-                },
-            ),
-            TextSection::new(
-                "0",
-                TextStyle {
-                    font_size: 30.0,
-                    ..default()
-                },
-            ),
-        ]),
-        FpsText,
-    ));
+        Text::new("FPS: "),
+        TextFont { font_size: 30.0, ..default() },
+    )).with_children(|parent| {
+        parent.spawn(
+        (
+            TextSpan::new("0"),
+            TextFont { font_size: 30.0, ..default() },
+            FpsText,
+        ));
+    });
 }
 
 #[cfg(feature = "lottie")]
@@ -173,13 +171,13 @@ fn update(
 #[cfg(feature = "lottie")]
 fn update_fps(
     diagnostics: Res<DiagnosticsStore>,
-    mut query: Query<&mut Text, With<FpsText>>,
+    mut query: Query<&mut TextSpan, With<FpsText>>,
 ) {
     for mut text in &mut query {
         if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
             if let Some(value) = fps.smoothed() {
                 // Update the value of the second section
-                text.sections[1].value = format!("{value:.2}");
+                text.0 = format!("{value:.2}");
             }
         }
     }

@@ -10,6 +10,7 @@ use bevy::render::render_resource::Extent3d;
 use bevy::render::render_resource::TextureDimension;
 use bevy::render::render_resource::TextureFormat;
 use bevy::utils::BoxedFuture;
+use bevy::utils::ConditionalSendFuture;
 use derivative::Derivative;
 use gv_video::get_bgra_vec_from_frame;
 use gv_video::GVVideo;
@@ -70,12 +71,12 @@ impl AssetLoader for GVMovieLoader {
     type Settings = ();
     type Error = std::io::Error;
   
-    fn load<'a>(
-      &'a self,
-      _reader: &'a mut Reader<'_>,
-      _settings: &'a (),
-      load_context: &'a mut LoadContext<'_>,
-    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
+    fn load(
+        &self,
+        _reader: &mut dyn Reader,
+        _settings: &Self::Settings,
+        load_context: &mut LoadContext,
+    ) -> impl ConditionalSendFuture<Output = Result<Self::Asset, Self::Error>> {
       Box::pin(async move {
         let asset_dir = "assets"; // FIXME: just WORKAROUND
         let p = Path::new(asset_dir).join(load_context.path());
@@ -98,12 +99,12 @@ impl AssetLoader for GVMovieOnMemoryLoader {
     type Settings = ();
     type Error = std::io::Error;
   
-    fn load<'a>(
-      &'a self,
-      reader: &'a mut Reader<'_>,
-      _settings: &'a (),
-      _load_context: &'a mut LoadContext<'_>,
-    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
+    fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &Self::Settings,
+        _load_context: &mut LoadContext,
+    ) -> impl ConditionalSendFuture<Output = Result<Self::Asset, Self::Error>> {
       Box::pin(async move {
         let mut bytes = Vec::new();
         reader.read_to_end(&mut bytes).await?;

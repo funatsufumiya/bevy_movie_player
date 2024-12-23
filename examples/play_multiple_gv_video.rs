@@ -1,7 +1,6 @@
 use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension}}};
-use bevy_asset_loader::loading_state::LoadingState;
 use bevy_movie_player::{gv::{load_gv, load_gv_on_memory, GVMoviePlayer}, movie_player::{BlankMode, Blankable, CompressedImageDataProvider, ImageData, ImageDataProvider, LoopMode, PlayingState}, prelude::*};
 
 fn main() {
@@ -108,7 +107,7 @@ fn setup(
         // movie_player.play();
     }
 
-    commands.spawn(Camera2dBundle::default());
+    commands.spawn(Camera2d::default());
 
     // texture from bytes
     let mut image_datas = Vec::<ImageData>::new();
@@ -139,55 +138,47 @@ fn setup(
     }
 
     // background plane
-    commands.spawn(SpriteBundle {
-        sprite: Sprite {
-            color: Color::rgb(0.25, 0.25, 0.75),
+    commands.spawn((
+        Sprite {
+            color: Color::linear_rgb(0.25, 0.25, 0.75),
             custom_size: Some(Vec2::new(800.0, 600.0)),
             ..default()
         },
-        ..default()
-    });
+        Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
+    ));
 
     let mut x = -400.0;
     let mut y = -300.0;
+    let mut z = 1.0;
     for handle in &image_handle.handles {
         x += 100.0;
         y += 100.0;
-        commands.spawn(SpriteBundle {
-            sprite: Sprite {
+        z += 0.1;
+        commands.spawn((
+            Sprite {
                 custom_size: Some(Vec2::new(640.0, 360.0)),
+                image: handle.clone(),
                 ..default()
             },
-            // texture: asset_server.load("images/bevy_logo.png"),
-            texture: handle.clone(),
-            transform: Transform {
-                translation: Vec3::new(x, y, 1.0),
+            Transform {
+                translation: Vec3::new(x, y, z),
                 ..default()
             },
-            ..default()
-        });
+        ));
     }
 
     // fps text
     commands.spawn((
-        TextBundle::from_sections([
-            TextSection::new(
-                "FPS: ",
-                TextStyle {
-                    font_size: 30.0,
-                    ..default()
-                },
-            ),
-            TextSection::new(
-                "0",
-                TextStyle {
-                    font_size: 30.0,
-                    ..default()
-                },
-            ),
-        ]),
-        FpsText,
-    ));
+        Text::new("FPS: "),
+        TextFont { font_size: 30.0, ..default() },
+    )).with_children(|parent| {
+        parent.spawn(
+        (
+            TextSpan::new("0"),
+            TextFont { font_size: 30.0, ..default() },
+            FpsText,
+        ));
+    });
 }
 
 fn update(
@@ -221,13 +212,13 @@ fn update(
 
 fn update_fps(
     diagnostics: Res<DiagnosticsStore>,
-    mut query: Query<&mut Text, With<FpsText>>,
+    mut query: Query<&mut TextSpan, With<FpsText>>,
 ) {
     for mut text in &mut query {
         if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
             if let Some(value) = fps.smoothed() {
                 // Update the value of the second section
-                text.sections[1].value = format!("{value:.2}");
+                text.0 = format!("{value:.2}");
             }
         }
     }
