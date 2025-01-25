@@ -2,13 +2,17 @@ use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension}}};
 
 use bevy_asset_loader::asset_collection::AssetCollection;
-use bevy_movie_player::{ffmpeg::{load_movie_from_url, FFmpegMovie, FFmpegMoviePlayer}, image_data_provider::{ImageCreator, ImageDataProvider}, movie_player::{LoopMode, PlayingState}, prelude::*};
+use bevy_movie_player::{ffmpeg::{load_movie, load_movie_from_url, FFmpegMovie, FFmpegMoviePlayer}, image_data_provider::{ImageCreator, ImageDataProvider}, movie_player::{LoopMode, PlayingState}, prelude::*};
 
 fn main() {
     use bevy_asset_loader::loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt};
 
     let url = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
     let movie_player = load_movie_from_url(url);
+
+    // // or:
+    // let path = "path/to/file.mp4";
+    // let movie_player = load_movie(path);
 
     App::new()
         .add_plugins(DefaultPlugins)
