@@ -184,23 +184,27 @@ impl BGRAImageFrameProvider for FFmpegMoviePlayer {
         // seek to last frame
         let frame_count: usize = (self.get_duration().as_secs_f64() * (self.decoder.frame_rate() as f64)).round() as usize;
         self.decoder.seek_to_frame((frame_count as i64) - 1).unwrap();
-        let frame_or_not = self.decoder.decode().ok();
+        let frame_or_not: Option<(video_rs::Time, ArrayBase<OwnedRepr<u8>, Dim<[usize; 3]>>)> = self.decoder.decode().ok();
         opt_rgb_to_bgra_u8(frame_or_not)
     }
 
     fn get_paused_frame_bgra(&mut self) -> Option<Vec<u8>> {
         let position = self.get_position();
-        let frame_number = (position.as_secs_f64() * (self.decoder.frame_rate() as f64)).round() as i64;
-        self.decoder.seek_to_frame(frame_number).unwrap();
+        // let frame_number = (position.as_secs_f64() * (self.decoder.frame_rate() as f64)).round() as i64;
+        // self.decoder.seek_to_frame(frame_number).unwrap();
+        let msec = position.as_millis() as i64;
+        self.decoder.seek(msec).unwrap();
         let frame_or_not = self.decoder.decode().ok();
         opt_rgb_to_bgra_u8(frame_or_not)
     }
 
     fn get_playing_frame_bgra(&mut self) -> Option<Vec<u8>> {
         let position = self.get_position();
-        let frame_number = (position.as_secs_f64() * (self.decoder.frame_rate() as f64)).round() as i64;
+        // let frame_number = (position.as_secs_f64() * (self.decoder.frame_rate() as f64)).round() as i64;
         // println!("frame_number: {}", frame_number);
-        self.decoder.seek_to_frame(frame_number).unwrap();
+        // self.decoder.seek_to_frame(frame_number).unwrap();
+        let msec = position.as_millis() as i64;
+        self.decoder.seek(msec).unwrap();
         let frame_or_not = self.decoder.decode().ok();
         opt_rgb_to_bgra_u8(frame_or_not)
     }
