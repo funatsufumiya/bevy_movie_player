@@ -14,6 +14,7 @@ use crate::blankable_image_data_provider::BGRAImageFrameProvider;
 use crate::blankable_image_data_provider::BlankMode;
 use crate::blankable_image_data_provider::Blankable;
 use crate::blankable_image_data_provider::CompressedImageFrameProvider;
+use crate::movie_player;
 use crate::movie_player::MoviePlayerStateController;
 use crate::movie_player::ImageData;
 use crate::movie_player::LoopMode;
@@ -26,8 +27,10 @@ use rlottie::Surface as LottieSurface;
 
 use core::slice;
 use std::mem;
+use std::ops::DerefMut;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::sync::MutexGuard;
 use std::time::Duration;
 
 #[derive(Derivative, Asset, TypePath)]
@@ -198,28 +201,28 @@ fn get_resolution_of_lottie(lottie: &rlottie::Animation) -> (u32, u32) {
     (size.width as u32, size.height as u32)
 }
 
+
+fn opt_bgra_to_u8(frame_or_not: Option<&[Bgra]>) -> Option<Vec<u8>> {
+    if let Some(frame) = frame_or_not {
+        let bgra_data = get_bgra_from_data(frame);
+        Some(bgra_data)
+    } else {
+        None
+    }
+}
+
 impl BGRAImageFrameProvider for LottieMoviePlayer {
     fn get_first_frame_bgra(&mut self) -> Option<Vec<u8>> {
         let mut lottie= self.lottie.lock().unwrap();
         let frame_or_not = read_frame(&mut lottie, &mut self.lottie_surface, 0);
-        if let Some(frame) = frame_or_not {
-            let bgra_data = get_bgra_from_data(frame);
-            Some(bgra_data)
-        } else {
-            None
-        }
+        opt_bgra_to_u8(frame_or_not)
     }
 
     fn get_last_frame_bgra(&mut self) -> Option<Vec<u8>> {
         let mut lottie= self.lottie.lock().unwrap();
         let total_frame = lottie.totalframe();
         let frame_or_not = read_frame(&mut lottie, &mut self.lottie_surface, total_frame - 1);
-        if let Some(frame) = frame_or_not {
-            let bgra_data = get_bgra_from_data(frame);
-            Some(bgra_data)
-        } else {
-            None
-        }
+        opt_bgra_to_u8(frame_or_not)
     }
 
     fn get_paused_frame_bgra(&mut self) -> Option<Vec<u8>> {
@@ -227,12 +230,7 @@ impl BGRAImageFrameProvider for LottieMoviePlayer {
         let position = self.get_position();
         let frame_or_not =
             read_frame_at(&mut lottie, &mut self.lottie_surface, position);
-        if let Some(frame) = frame_or_not {
-            let bgra_data = get_bgra_from_data(frame);
-            Some(bgra_data)
-        } else {
-            None
-        }
+        opt_bgra_to_u8(frame_or_not)
     }
 
     fn get_playing_frame_bgra(&mut self) -> Option<Vec<u8>> {
@@ -240,12 +238,7 @@ impl BGRAImageFrameProvider for LottieMoviePlayer {
         let position = self.get_position();
         let frame_or_not =
             read_frame_at(&mut lottie, &mut self.lottie_surface, position);
-        if let Some(frame) = frame_or_not {
-            let bgra_data = get_bgra_from_data(frame);
-            Some(bgra_data)
-        } else {
-            None
-        }
+        opt_bgra_to_u8(frame_or_not)
     }
 }
 

@@ -190,41 +190,33 @@ impl<Reader: Read + Seek> Blankable for GVMoviePlayer<Reader> {
     }
 }
 
+fn opt_bgra_to_u8(frame_or_not: Option<Vec<u32>>) -> Option<Vec<u8>> {
+    if let Some(frame) = frame_or_not {
+        Some(get_bgra_vec_from_frame(frame))
+    } else {
+        None
+    }
+}
+
 impl<Reader: Read + Seek> BGRAImageFrameProvider for GVMoviePlayer<Reader> {
     fn get_first_frame_bgra(&mut self) -> Option<Vec<u8>> {
         let frame_or_not = self.gv.read_frame(0).ok();
-        if let Some(frame) = frame_or_not {
-            Some(get_bgra_vec_from_frame(frame))
-        } else {
-            None
-        }
+        opt_bgra_to_u8(frame_or_not)
     }
 
     fn get_last_frame_bgra(&mut self) -> Option<Vec<u8>> {
         let frame_or_not = self.gv.read_frame(self.gv.get_frame_count() - 1).ok();
-        if let Some(frame) = frame_or_not {
-            Some(get_bgra_vec_from_frame(frame))
-        } else {
-            None
-        }
+        opt_bgra_to_u8(frame_or_not)
     }
 
     fn get_paused_frame_bgra(&mut self) -> Option<Vec<u8>> {
         let frame_or_not = self.gv.read_frame_at(self.get_position()).ok();
-        if let Some(frame) = frame_or_not {
-            Some(get_bgra_vec_from_frame(frame))
-        } else {
-            None
-        }
+        opt_bgra_to_u8(frame_or_not)
     }
 
     fn get_playing_frame_bgra(&mut self) -> Option<Vec<u8>> {
         let frame_or_not = self.gv.read_frame_at(self.get_position()).ok();
-        if let Some(frame) = frame_or_not {
-            Some(get_bgra_vec_from_frame(frame))
-        } else {
-            None
-        }
+        opt_bgra_to_u8(frame_or_not)
     }
 
 }
@@ -241,38 +233,22 @@ fn get_texture_format_from_gv_format(gv_format: GVFormat) -> TextureFormat {
 impl<Reader: Read + Seek> CompressedImageFrameProvider for GVMoviePlayer<Reader> {
     fn get_first_frame_compressed(&mut self) -> Option<Vec<u8>> {
         let frame_or_not = self.gv.read_frame_compressed(0).ok();
-        if let Some(frame) = frame_or_not {
-            Some(frame)
-        } else {
-            None
-        }
+        frame_or_not
     }
 
     fn get_last_frame_compressed(&mut self) -> Option<Vec<u8>> {
         let frame_or_not = self.gv.read_frame_compressed(self.gv.get_frame_count() - 1).ok();
-        if let Some(frame) = frame_or_not {
-            Some(frame)
-        } else {
-            None
-        }
+        frame_or_not
     }
 
     fn get_playing_frame_compressed(&mut self) -> Option<Vec<u8>> {
         let frame_or_not = self.gv.read_frame_compressed_at(self.get_position()).ok();
-        if let Some(frame) = frame_or_not {
-            Some(frame)
-        } else {
-            None
-        }
+        frame_or_not
     }
 
     fn get_paused_frame_compressed(&mut self) -> Option<Vec<u8>> {
         let frame_or_not = self.gv.read_frame_compressed_at(self.get_position()).ok();
-        if let Some(frame) = frame_or_not {
-            Some(frame)
-        } else {
-            None
-        }
+        frame_or_not
     }
 
     fn get_texture_format(&self) -> TextureFormat {
