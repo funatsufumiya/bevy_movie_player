@@ -111,7 +111,7 @@ impl AssetLoader for FFmpegMovieLoader {
     }
   
     fn extensions(&self) -> &[&str] {
-      &["mp4", "mov", "avi", "mkv", "ogv", "m4v"]
+      &["mp4", "mov", "avi", "webm", "mkv", "ogv", "m4v"]
     }
 }
 
