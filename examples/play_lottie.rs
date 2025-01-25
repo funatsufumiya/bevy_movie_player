@@ -1,14 +1,9 @@
-#[cfg(feature = "lottie")]
 use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
-#[cfg(feature = "lottie")]
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension}}};
 use bevy_movie_player::lottie::LottieMoviePlayer;
-#[cfg(feature = "lottie")]
 use bevy_movie_player::{movie_player::{CompressedImageDataProvider, ImageDataProvider, LoopMode}, prelude::*};
-#[cfg(feature = "lottie")]
 use bevy_movie_player::lottie::load_lottie;
 
-#[cfg(feature = "lottie")]
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -27,24 +22,20 @@ fn main() {
         .run();
 }
 
-#[cfg(feature = "lottie")]
 #[derive(Resource)]
 struct MovieRes {
     last_update_time: Option<Duration>,
     movie_player: Option<LottieMoviePlayer>,
 }
 
-#[cfg(feature = "lottie")]
 #[derive(Resource)]
 struct ImageHandle {
     handle: Option<Handle<Image>>,
 }
 
-#[cfg(feature = "lottie")]
 #[derive(Component)]
 struct FpsText;
 
-#[cfg(feature = "lottie")]
 fn setup(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
@@ -125,7 +116,6 @@ fn setup(
     ));
 }
 
-#[cfg(feature = "lottie")]
 fn update(
     mut images: ResMut<Assets<Image>>,
     image_handle: Res<ImageHandle>,
@@ -155,7 +145,6 @@ fn update(
     movie_res.last_update_time = Some(time.elapsed());
 }
 
-#[cfg(feature = "lottie")]
 fn update_fps(
     diagnostics: Res<DiagnosticsStore>,
     mut query: Query<&mut Text, With<FpsText>>,
