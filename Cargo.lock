@@ -862,6 +862,7 @@ dependencies = [
  "bevy_asset_loader",
  "bevy_internal",
  "derivative",
+ "ffmpeg-sys-next",
  "gv_video",
  "ndarray",
  "rlottie",
@@ -4505,8 +4506,7 @@ checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
 [[package]]
 name = "video-rs"
 version = "0.10.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c9f6df3b49d862ea35d2c509801ee64983f2169ea02e3a8642e69ce2230e47c"
+source = "git+https://github.com/funatsufumiya/video-rs?rev=9d0f25e#9d0f25e13d06a1a1c2c95e6ddb8b16e4ccdfe669"
 dependencies = [
  "ffmpeg-next",
  "ndarray",
