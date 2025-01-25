@@ -9,4 +9,5 @@ pub mod lottie;
 pub mod prelude {
     pub use crate::plugin::MoviePlayerPlugin;
     pub use crate::movie_player::MoviePlayer;
+    pub use crate::movie_player::SeekOutOfBoundsError;
 }

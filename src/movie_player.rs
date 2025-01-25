@@ -84,6 +84,11 @@ impl Default for BlankMode {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct SeekOutOfBoundsError {
+    pub actual_seeked_position: Duration,
+}
+
 pub struct MoviePlayerStateController {
     pub state: PlayingState,
     pub bevy_elapsed_time: Duration,
@@ -146,9 +151,26 @@ impl MoviePlayerStateController {
         self.pause_started_time = None;
     }
 
-    pub fn seek(&mut self, to_time: Duration, bevy_elapsed_time: Duration) {
+    pub fn seek(&mut self, to_time: Duration, bevy_elapsed_time: Duration, movie_total_duration: Duration)  -> Result<Duration, SeekOutOfBoundsError> {
+        if to_time < Duration::from_secs(0) {
+            self.seek_position = Duration::from_secs(0);
+            self.play_started_time = Some(bevy_elapsed_time);
+            return Err(SeekOutOfBoundsError {
+                actual_seeked_position: Duration::from_secs(0),
+            });
+        }
+        if to_time > movie_total_duration {
+            // WORKAROUND: seek to the end - 0.1ms
+            let actual_to_time = movie_total_duration - Duration::from_secs_f32(0.0001);
+            self.seek_position = actual_to_time;
+            self.play_started_time = Some(bevy_elapsed_time);
+            return Err(SeekOutOfBoundsError {
+                actual_seeked_position: actual_to_time,
+            });
+        }
         self.seek_position = to_time;
         self.play_started_time = Some(bevy_elapsed_time);
+        Ok(self.seek_position)
     }
 
     pub fn get_state(&self) -> PlayingState {
@@ -174,17 +196,11 @@ impl MoviePlayerStateController {
                         self.stop();
                     },
                     LoopMode::Loop => {
-                        self.seek(Duration::from_secs(0), bevy_elapsed_time);
+                        let _ = self.seek(Duration::from_secs(0), bevy_elapsed_time, duration);
                     },
                     LoopMode::PauseAtEnd => {
-                        // self.seek(self.get_duration(), bevy_elapsed_time);
-
-                        // FIXME: not working
-                        // let last_frame_pos = self.gv.get_fps() * (self.gv.get_frame_count() as f32 - 1.0);
-                        // self.seek(Duration::from_secs_f32(last_frame_pos), bevy_elapsed_time);
-
                         // WORKAROUND: seek to the end - 0.1ms
-                        self.seek(duration - Duration::from_secs_f32(0.0001), bevy_elapsed_time);
+                        let _ = self.seek(duration - Duration::from_secs_f32(0.0001), bevy_elapsed_time, duration);
                         self.state = PlayingState::Paused;
                     },
                 }
@@ -224,9 +240,10 @@ pub trait MoviePlayer {
         self.get_state_controller_mut().stop();
     }
 
-    fn seek(&mut self, to_time: Duration) {
+    fn seek(&mut self, to_time: Duration) -> Result<Duration, SeekOutOfBoundsError> {
+        let duration = self.get_duration();
         let state_controller = self.get_state_controller_mut();
-        state_controller.seek(to_time, state_controller.bevy_elapsed_time);
+        state_controller.seek(to_time, state_controller.bevy_elapsed_time, duration)
     }
 
     fn get_state(&self) -> PlayingState {
