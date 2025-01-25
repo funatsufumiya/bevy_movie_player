@@ -32,6 +32,13 @@ pub trait BGRAImageFrameProvider {
     fn get_last_frame_bgra(&mut self) -> Option<Vec<u8>>;
 }
 
+pub trait RGBImageFrameProvider {
+    fn get_first_frame_rgb(&mut self) -> Option<Vec<u8>>;
+    fn get_paused_frame_rgb(&mut self) -> Option<Vec<u8>>;
+    fn get_playing_frame_rgb(&mut self) -> Option<Vec<u8>>;
+    fn get_last_frame_rgb(&mut self) -> Option<Vec<u8>>;
+}
+
 pub trait CompressedImageFrameProvider {
     fn get_first_frame_compressed(&mut self) -> Option<Vec<u8>>;
     fn get_paused_frame_compressed(&mut self) -> Option<Vec<u8>>;
@@ -40,7 +47,7 @@ pub trait CompressedImageFrameProvider {
     fn get_texture_format(&self) -> TextureFormat;
 }
 
-pub trait Blankable {
+pub trait BlankableBGRA {
     fn set_blank_mode(&mut self, blank_mode: BlankMode);
     fn get_blank_mode(&self) -> BlankMode;
 
@@ -116,9 +123,80 @@ pub trait Blankable {
     }
 }
 
+pub trait BlankableRGB {
+    fn set_blank_mode(&mut self, blank_mode: BlankMode);
+    fn get_blank_mode(&self) -> BlankMode;
+
+    fn black_frame_rgb_1x1() -> &'static [u8] {
+        &[0, 0, 0]
+    }
+    fn white_frame_rgb_1x1() -> &'static [u8] {
+        &[255, 255, 255]
+    }
+    fn transparent_frame_rgb_1x1() -> &'static [u8] {
+        &[0, 0, 0]
+    }
+    fn texture_1x1_rgb(data: &[u8]) -> ImageData {
+        ImageData {
+            data: data.to_vec(),
+            format: TextureFormat::Rgb8Unorm,
+            resolution: (1, 1),
+        }
+    }
+    // fn texture_rgb(data: &Vec<u8>, width: u32, height: u32) -> ImageData {
+    //     ImageData {
+    //         data: data.clone(),
+    //         format: TextureFormat::Rgb8Unorm,
+    //         resolution: (width, height),
+    //     }
+    // }
+    fn get_blank_frame_rgb(&self, state: PlayingState, last_or_first_frame: Option<ImageData>) -> ImageData {
+        match self.get_blank_mode() {
+            BlankMode::Black => Self::texture_1x1_rgb(Self::black_frame_rgb_1x1()),
+            BlankMode::White => Self::texture_1x1_rgb(Self::white_frame_rgb_1x1()),
+            BlankMode::Transparent => Self::texture_1x1_rgb(Self::transparent_frame_rgb_1x1()),
+            BlankMode::LastFrameOnPause_TransparentOnStop => {
+                if state == PlayingState::Paused {
+                    if let Some(last_frame) = last_or_first_frame {
+                        last_frame
+                    } else {
+                        Self::texture_1x1_rgb(Self::transparent_frame_rgb_1x1())
+                    }
+                } else {
+                    Self::texture_1x1_rgb(Self::transparent_frame_rgb_1x1())
+                }
+            },
+            BlankMode::LastFrameOnPause_FirstFrameOnStop => {
+                if state == PlayingState::Paused {
+                    if let Some(last_frame) = last_or_first_frame {
+                        last_frame
+                    } else {
+                        Self::texture_1x1_rgb(Self::transparent_frame_rgb_1x1())
+                    }
+                } else if state == PlayingState::Stopped {
+                    if let Some(first_frame) = last_or_first_frame {
+                        first_frame
+                    } else {
+                        Self::texture_1x1_rgb(Self::transparent_frame_rgb_1x1())
+                    }
+                } else {
+                    Self::texture_1x1_rgb(Self::transparent_frame_rgb_1x1())
+                }
+            },
+            BlankMode::LastFrameOnPauseAndStop => {
+                if let Some(last_or_first_frame) = last_or_first_frame {
+                    last_or_first_frame
+                } else {
+                    Self::texture_1x1_rgb(Self::transparent_frame_rgb_1x1())
+                }
+            },
+        }
+    }
+}
+
 impl<T> ImageDataProvider for T
 where
-    T: Blankable + MoviePlayer + BGRAImageFrameProvider
+    T: BlankableBGRA + MoviePlayer + BGRAImageFrameProvider
 {
     fn get_image_data(&mut self) -> ImageData {
         match self.get_state() {
@@ -178,7 +256,7 @@ where
 
 impl<T> CompressedImageDataProvider for T
 where
-    T: Blankable + MoviePlayer + CompressedImageFrameProvider
+    T: BlankableBGRA + MoviePlayer + CompressedImageFrameProvider
 {
     fn get_compressed_image_data(&mut self) -> ImageData {
         match self.get_state() {

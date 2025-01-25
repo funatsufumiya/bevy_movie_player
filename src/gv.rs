@@ -12,7 +12,7 @@ use gv_video::GVFormat;
 
 use crate::blankable_image_data_provider::BGRAImageFrameProvider;
 use crate::blankable_image_data_provider::BlankMode;
-use crate::blankable_image_data_provider::Blankable;
+use crate::blankable_image_data_provider::BlankableBGRA;
 use crate::blankable_image_data_provider::CompressedImageFrameProvider;
 use crate::movie_player::MoviePlayerStateController;
 use crate::movie_player::MoviePlayer;
@@ -180,7 +180,7 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
     }
 }
 
-impl<Reader: Read + Seek> Blankable for GVMoviePlayer<Reader> {
+impl<Reader: Read + Seek> BlankableBGRA for GVMoviePlayer<Reader> {
     fn get_blank_mode(&self) -> BlankMode {
         self.blank_mode
     }

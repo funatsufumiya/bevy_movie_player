@@ -9,7 +9,7 @@ use rlottie::Bgra;
 
 use crate::blankable_image_data_provider::BGRAImageFrameProvider;
 use crate::blankable_image_data_provider::BlankMode;
-use crate::blankable_image_data_provider::Blankable;
+use crate::blankable_image_data_provider::BlankableBGRA;
 use crate::movie_player::MoviePlayerStateController;
 use crate::movie_player::MoviePlayer;
 
@@ -151,7 +151,7 @@ impl MoviePlayer for LottieMoviePlayer {
     }
 }
 
-impl Blankable for LottieMoviePlayer {
+impl BlankableBGRA for LottieMoviePlayer {
     fn set_blank_mode(&mut self, blank_mode: BlankMode) {
         self.blank_mode = blank_mode;
     }
