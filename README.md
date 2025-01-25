@@ -9,8 +9,9 @@ A movie player plugin for Bevy game engine.
 ## Supported movie formats
 
 - Any video format supported by [ffmpeg](https://ffmpeg.org/) (`--features ffmpeg`)
-  - using [video-rs](https://github.com/oddity-ai/video-rs).
-  - Currently has extension limitation for bevy-asset-loader. (Need fix or modifying code.)
+    - using [video-rs](https://github.com/oddity-ai/video-rs).
+    - Currently has extension limitation for bevy-asset-loader. (Need fix or modifying code.)
+    - ( supported from `bevy_movie_player` `0.4.2` or higher )
 - `.gv` format (`--features gv`)
     - using [rust-gv-video](https://github.com/funatsufumiya/rust-gv-video).
     - alpha channel support.
@@ -18,7 +19,7 @@ A movie player plugin for Bevy game engine.
     - both disk stream and on memory stream are supported.
 - Lottie (lottie-json `.json`) format (`--features lottie`)
     - using [rlottie-rs](https://github.com/msrd0/rlottie-rs)
-    - supported from `0.2.1` or higher
+    - ( supported from `bevy_movie_player` `0.2.1` or higher )
 
 ## Version compatibility
 
