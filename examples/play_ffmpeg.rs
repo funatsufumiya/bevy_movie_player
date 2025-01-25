@@ -104,7 +104,7 @@ fn setup(
     commands.spawn((
         Sprite {
             image: image_handle.handle.clone().unwrap(),
-            custom_size: Some(Vec2::new(360.0, 360.0)),
+            custom_size: Some(Vec2::new(540.0, 360.0)),
             ..default()
         },
         Transform {

@@ -8,7 +8,10 @@ A movie player plugin for Bevy game engine.
 
 ## Supported movie formats
 
-- `.gv` format
+- Any video format supported by [ffmpeg](https://ffmpeg.org/) (`--features ffmpeg`)
+  - using [video-rs](https://github.com/oddity-ai/video-rs).
+  - Currently has extension limitation for bevy-asset-loader. (Need fix or modifying code.)
+- `.gv` format (`--features gv`)
     - using [rust-gv-video](https://github.com/funatsufumiya/rust-gv-video).
     - alpha channel support.
     - `.gv` has simple LZ4 compressed + BC1/BC2/BC3/BC7 texture format.
@@ -28,7 +31,7 @@ A movie player plugin for Bevy game engine.
 
 ## Known issues
 
-- Movie load FPS limitation is needed. (example code has 30fps limitation, but considering to use original thread in module)
+- Movie load FPS limitation is needed. (example code has 60fps limitation, but considering to use original thread in module)
 - Very slow FPS on debug build. Please use `--release` flag to check the performance.
 - Compressed Texture cannot be used on first frame, to avoid panic: `Using pixel_size for compressed textures is invalid` (`bevy_render-0.12.1/src/texture/image.rs:785:18`).
 - No audio support now.
@@ -36,7 +39,6 @@ A movie player plugin for Bevy game engine.
 ## Planning
 
 - auto image handling / updating (just play/stop, and eliminate `update()` also?)
-- Support other formats using [`video-rs`](https://github.com/oddity-ai/video-rs) as a feature.
 
 ## Contribution
 

@@ -864,7 +864,6 @@ dependencies = [
  "derivative",
  "ffmpeg-sys-next",
  "gv_video",
- "ndarray",
  "rlottie",
  "rlottie-sys",
  "video-rs",

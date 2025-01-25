@@ -10,7 +10,8 @@ bevy_asset_loader = "0.22"
 [features]
 default = []
 lottie = [ "rlottie", "rlottie-sys" ]
-ffmpeg = [ "video-rs", "ndarray", "ffmpeg-sys-next" ]
+ffmpeg = [ "video-rs", "ffmpeg-sys-next" ]
+gv = [ "gv_video" ]
 disable-json-extension-for-lottie = []
 
 [dependencies]
@@ -26,9 +27,9 @@ bevy_internal = { version = "0.15.1", features = [ "bevy_image" ]}
 # video-rs = { git = "https://github.com/funatsufumiya/video-rs", branch = "feat_bgra", version = "0.10", features = ["ndarray"], optional = true }
 video-rs = { git = "https://github.com/funatsufumiya/video-rs", rev = "9d0f25e", version = "0.10", features = ["ndarray"], optional = true }
 ffmpeg-sys-next = { version = "7.1.0", optional = true }
-ndarray = { version = "0.16.1", optional = true }
+# ndarray = { version = "0.16.1", optional = true }
 # gv_video = { git = "https://github.com/funatsufumiya/rust-gv-video", version = "0.1.7" }
-gv_video = { version = "0.1.11" }
+gv_video = { version = "0.1.11", optional = true }
 # openh264 = { version = "0.1.14", optional = true }
 # rlottie = { version = "0.5.2", optional = true }
 rlottie = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "40daf8e", version = "0.5.2", optional = true }
@@ -41,13 +42,13 @@ anyhow = "1.0"
 name = "play_gv_video"
 path = "examples/play_gv_video.rs"
 doc-scrape-examples = true
-required-features = []
+required-features = ["gv"]
 
 [[example]]
 name = "play_multiple_gv_video"
 path = "examples/play_multiple_gv_video.rs"
 doc-scrape-examples = true
-required-features = []
+required-features = ["gv"]
 
 [[example]]
 name = "play_lottie"

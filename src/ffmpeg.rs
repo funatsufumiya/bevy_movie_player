@@ -5,12 +5,12 @@ use bevy::prelude::*;
 use bevy::render::render_resource::TextureFormat;
 use bevy::utils::ConditionalSendFuture;
 use derivative::Derivative;
-use ndarray::s;
-use ndarray::stack;
-use ndarray::Array;
-use ndarray::ArrayBase;
-use ndarray::Dim;
-use ndarray::OwnedRepr;
+// use ndarray::s;
+// use ndarray::stack;
+// use ndarray::Array;
+// use ndarray::ArrayBase;
+// use ndarray::Dim;
+// use ndarray::OwnedRepr;
 use video_rs::Decoder;
 use video_rs::Url;
 
@@ -30,13 +30,17 @@ use std::path::Path;
 use std::time::Duration;
 use std::fmt;
 
-use ndarray::Axis;
+// use ndarray::Axis;
 
 #[derive(Derivative, Asset, TypePath)]
 #[derivative(Debug)]
 pub struct FFmpegMoviePlayer {
     #[derivative(Debug="ignore")]
     pub decoder: Decoder,
+    #[derivative(Debug="ignore")]
+    pub decoder_frame_number: usize,
+    #[derivative(Debug="ignore")]
+    pub cached_frame: Option<Vec<u8>>,
     #[derivative(Debug="ignore")]
     state_controller: MoviePlayerStateController,
     #[derivative(Debug="ignore")]
@@ -57,6 +61,8 @@ pub fn load_movie(path: &str) -> FFmpegMoviePlayer {
 
     FFmpegMoviePlayer {
         decoder,
+        decoder_frame_number: 0,
+        cached_frame: None,
         state_controller: MoviePlayerStateController::default(),
         blank_mode: BlankMode::default(),
     }
@@ -71,6 +77,8 @@ pub fn load_movie_from_url(url: &str) -> FFmpegMoviePlayer {
 
     FFmpegMoviePlayer {
         decoder,
+        decoder_frame_number: 0,
+        cached_frame: None,
         state_controller: MoviePlayerStateController::default(),
         blank_mode: BlankMode::default(),
     }
@@ -147,111 +155,139 @@ impl Blankable for FFmpegMoviePlayer {
     }
 }
 
-fn opt_rgb_to_bgra_u8(opt_rgb_ndarray: Option<(video_rs::Time, ArrayBase<OwnedRepr<u8>, Dim<[usize; 3]>>)>) -> Option<Vec<u8>> {
-    if let Some(rgb) = opt_rgb_ndarray {
+// fn opt_rgb_to_bgra_u8(opt_rgb_ndarray: Option<(video_rs::Time, ArrayBase<OwnedRepr<u8>, Dim<[usize; 3]>>)>) -> Option<Vec<u8>> {
+//     if let Some(rgb) = opt_rgb_ndarray {
 
-        // for faster, first just convert rgb into vec
-        // let rgb_ndarray = rgb.1.view();
-        // let size = rgb_ndarray.shape()[0] * rgb_ndarray.shape()[1];
-        // let rgb_raw = rgb_ndarray.to_shape((rgb_ndarray.shape()[0] * rgb_ndarray.shape()[1] * rgb_ndarray.shape()[2])).unwrap();
-        // let mut rgb_vec = rgb_raw.to_vec();
-        // // finally add size (fill 255)
-        // rgb_vec.append(&mut vec![255; size]);
-        // return Some(rgb_vec);
+//         // for faster, first just convert rgb into vec
+//         // let rgb_ndarray = rgb.1.view();
+//         // let size = rgb_ndarray.shape()[0] * rgb_ndarray.shape()[1];
+//         // let rgb_raw = rgb_ndarray.to_shape((rgb_ndarray.shape()[0] * rgb_ndarray.shape()[1] * rgb_ndarray.shape()[2])).unwrap();
+//         // let mut rgb_vec = rgb_raw.to_vec();
+//         // // finally add size (fill 255)
+//         // rgb_vec.append(&mut vec![255; size]);
+//         // return Some(rgb_vec);
 
-        // slower
+//         // slower
 
-        let rgb_ndarray = rgb.1.view();
-        let size = rgb_ndarray.shape()[0] * rgb_ndarray.shape()[1];
-        let w: usize = rgb_ndarray.shape()[0];
-        let h: usize = rgb_ndarray.shape()[1];
-        let r_array = rgb_ndarray.index_axis(Axis(2), 0);
-        let g_array = rgb_ndarray.index_axis(Axis(2), 1);
-        let b_array = rgb_ndarray.index_axis(Axis(2), 2);
-        // let mut a_array = Array::<u8,_>::zeros((rgb_ndarray.shape()[0], rgb_ndarray.shape()[1]));
-        // a_array.fill(255);
-        let a_array = Array::<u8,_>::ones((rgb_ndarray.shape()[0], rgb_ndarray.shape()[1])) * 255;
-        // let a_array = Array::<u8,_>::from(vec![255; size]).to_shape((w, h)).unwrap();
-        // let rgba_ndarray = stack!(Axis(0), r_array, g_array, b_array, a_array);
-        // let rgba_ndarray_raw = rgba_ndarray.to_shape((rgba_ndarray.shape()[0] * rgba_ndarray.shape()[1] * rgba_ndarray.shape()[2])).unwrap();
-        // let rgba_ndarray_as_u8 = rgba_ndarray_raw.to_vec();
-        // return Some(rgba_ndarray_as_u8.to_vec());
+//         let rgb_ndarray = rgb.1.view();
+//         let size = rgb_ndarray.shape()[0] * rgb_ndarray.shape()[1];
+//         let w: usize = rgb_ndarray.shape()[0];
+//         let h: usize = rgb_ndarray.shape()[1];
+//         let r_array = rgb_ndarray.index_axis(Axis(2), 0);
+//         let g_array = rgb_ndarray.index_axis(Axis(2), 1);
+//         let b_array = rgb_ndarray.index_axis(Axis(2), 2);
+//         // let mut a_array = Array::<u8,_>::zeros((rgb_ndarray.shape()[0], rgb_ndarray.shape()[1]));
+//         // a_array.fill(255);
+//         let a_array = Array::<u8,_>::ones((rgb_ndarray.shape()[0], rgb_ndarray.shape()[1])) * 255;
+//         // let a_array = Array::<u8,_>::from(vec![255; size]).to_shape((w, h)).unwrap();
+//         // let rgba_ndarray = stack!(Axis(0), r_array, g_array, b_array, a_array);
+//         // let rgba_ndarray_raw = rgba_ndarray.to_shape((rgba_ndarray.shape()[0] * rgba_ndarray.shape()[1] * rgba_ndarray.shape()[2])).unwrap();
+//         // let rgba_ndarray_as_u8 = rgba_ndarray_raw.to_vec();
+//         // return Some(rgba_ndarray_as_u8.to_vec());
 
-        let bgra_ndarray = stack!(Axis(2), b_array, g_array, r_array, a_array);
-        // let bgra_ndarray2 = bgra_ndarray.to_shape((bgra_ndarray.shape()[2], bgra_ndarray.shape()[0], bgra_ndarray.shape()[1])).unwrap();
-        let bgra_ndarray_raw = bgra_ndarray.to_shape((bgra_ndarray.shape()[0] * bgra_ndarray.shape()[1] * bgra_ndarray.shape()[2])).unwrap();
-        let bgra_ndarray_as_u8 = bgra_ndarray_raw.to_vec();
-        return Some(bgra_ndarray_as_u8.to_vec());
-    } else {
+//         let bgra_ndarray = stack!(Axis(2), b_array, g_array, r_array, a_array);
+//         // let bgra_ndarray2 = bgra_ndarray.to_shape((bgra_ndarray.shape()[2], bgra_ndarray.shape()[0], bgra_ndarray.shape()[1])).unwrap();
+//         let bgra_ndarray_raw = bgra_ndarray.to_shape((bgra_ndarray.shape()[0] * bgra_ndarray.shape()[1] * bgra_ndarray.shape()[2])).unwrap();
+//         let bgra_ndarray_as_u8 = bgra_ndarray_raw.to_vec();
+//         return Some(bgra_ndarray_as_u8.to_vec());
+//     } else {
+//         None
+//     }
+// }
+
+fn opt_bgra_to_bgra_u8(frame_or_not: &Option<video_rs::ffmpeg::frame::Video>) -> Option<Vec<u8>> {
+    if let Some(frame) = frame_or_not {
+        let size: usize = (frame.width() *  frame.height() * 4) as usize;
+        unsafe {
+            let ptr: *const ffmpeg_sys_next::AVFrame = frame.as_ptr();
+            let data = frame.data(0);
+            Some(data.to_vec())
+        }
+    }else{
         None
     }
 }
-
-fn opt_bgra_to_bgra_u8(opt_bgra_ndarray: Option<(video_rs::Time, ArrayBase<OwnedRepr<u8>, Dim<[usize; 3]>>)>) -> Option<Vec<u8>> {
-    if let Some(bgra) = opt_bgra_ndarray {
-        let bgra_ndarray = bgra.1.view();
-        println!("bgra_ndarray.shape(): {:?}", bgra_ndarray.shape());
-        let size = bgra_ndarray.shape()[0] * bgra_ndarray.shape()[1];
-        let bgra_raw = bgra_ndarray.to_shape((bgra_ndarray.shape()[0] * bgra_ndarray.shape()[1] * bgra_ndarray.shape()[2])).unwrap();
-        let bgra_vec = bgra_raw.to_vec();
-        return Some(bgra_vec);
-    } else {
-        None
-    }
-}
-
 
 impl BGRAImageFrameProvider for FFmpegMoviePlayer {
     fn get_first_frame_bgra(&mut self) -> Option<Vec<u8>> {
         // seek to first frame
         self.decoder.seek_to_start().unwrap();
-        let frame_or_not = self.decoder.decode().ok();
+        // let frame_or_not = self.decoder.decode().ok();
         // opt_rgb_to_bgra_u8(frame_or_not)
-        opt_bgra_to_bgra_u8(frame_or_not)
+        let frame_or_not = self.decoder.decode_raw().ok();
+        opt_bgra_to_bgra_u8(&frame_or_not)
     }
 
     fn get_last_frame_bgra(&mut self) -> Option<Vec<u8>> {
         // seek to last frame
         let frame_count: usize = (self.get_duration().as_secs_f64() * (self.decoder.frame_rate() as f64)).round() as usize;
         self.decoder.seek_to_frame((frame_count as i64) - 1).unwrap();
-        let frame_or_not: Option<(video_rs::Time, ArrayBase<OwnedRepr<u8>, Dim<[usize; 3]>>)> = self.decoder.decode().ok();
+        // let frame_or_not: Option<(video_rs::Time, ArrayBase<OwnedRepr<u8>, Dim<[usize; 3]>>)> = self.decoder.decode().ok();
         // opt_rgb_to_bgra_u8(frame_or_not)
-        opt_bgra_to_bgra_u8(frame_or_not)
+        let frame_or_not = self.decoder.decode_raw().ok();
+        opt_bgra_to_bgra_u8(&frame_or_not)
     }
 
     fn get_paused_frame_bgra(&mut self) -> Option<Vec<u8>> {
+        // use cached frame
+        // self.cached_frame.clone()
+
         let position = self.get_position();
-        // let frame_number = (position.as_secs_f64() * (self.decoder.frame_rate() as f64)).round() as i64;
-        // self.decoder.seek_to_frame(frame_number).unwrap();
-        let msec = position.as_millis() as i64;
-        self.decoder.seek(msec).unwrap();
-        let frame_or_not = self.decoder.decode().ok();
-        // opt_rgb_to_bgra_u8(frame_or_not)
-        opt_bgra_to_bgra_u8(frame_or_not)
+        let frame_number: usize = ((position.as_secs_f64() * (self.decoder.frame_rate() as f64)).round()) as usize;
+
+        if frame_number < self.decoder_frame_number {
+            // go to head
+            self.decoder.seek_to_start().unwrap();
+            self.decoder_frame_number = 0;
+        }
+
+        let mut frame_or_not = None;
+        while self.decoder_frame_number < frame_number {
+            frame_or_not = self.decoder.decode_raw().ok();
+            if frame_or_not.is_some() {
+                self.cached_frame = opt_bgra_to_bgra_u8(&frame_or_not);
+            }
+            self.decoder_frame_number += 1;
+        }
+
+        // println!("frame_or_not: {}", frame_or_not.is_some());
+        // println!("frame_number: {}", frame_number);
+        // println!("decoder_frame_number: {}", self.decoder_frame_number);
+
+        if frame_or_not.is_some() {
+            opt_bgra_to_bgra_u8(&frame_or_not)
+        } else {
+            self.cached_frame.clone()
+        }
     }
 
     fn get_playing_frame_bgra(&mut self) -> Option<Vec<u8>> {
         let position = self.get_position();
-        // let frame_number = (position.as_secs_f64() * (self.decoder.frame_rate() as f64)).round() as i64;
-        // println!("frame_number: {}", frame_number);
-        // self.decoder.seek_to_frame(frame_number).unwrap();
-        let msec = position.as_millis() as i64;
-        // println!("msec: {}", msec);
-        self.decoder.seek(msec).unwrap();
-        // let frame_or_not = self.decoder.decode().ok();
-        // opt_rgb_to_bgra_u8(frame_or_not)
-        // opt_bgra_to_bgra_u8(frame_or_not)
-        let frame_or_not = self.decoder.decode_raw().ok();
+        let frame_number: usize = ((position.as_secs_f64() * (self.decoder.frame_rate() as f64)).round()) as usize;
 
-        if let Some(frame) = frame_or_not {
-            let size: usize = (frame.width() *  frame.height() * 4) as usize;
-            unsafe {
-                let ptr: *const ffmpeg_sys_next::AVFrame = frame.as_ptr();
-                let data = frame.data(0);
-                Some(data.to_vec())
+        if frame_number < self.decoder_frame_number {
+            // go to head
+            self.decoder.seek_to_start().unwrap();
+            self.decoder_frame_number = 0;
+        }
+
+        let mut frame_or_not = None;
+        while self.decoder_frame_number < frame_number {
+            frame_or_not = self.decoder.decode_raw().ok();
+            if frame_or_not.is_some() {
+                self.cached_frame = opt_bgra_to_bgra_u8(&frame_or_not);
             }
-        }else{
-            None
+            self.decoder_frame_number += 1;
+        }
+
+        // println!("frame_or_not: {}", frame_or_not.is_some());
+        // println!("frame_number: {}", frame_number);
+        // println!("decoder_frame_number: {}", self.decoder_frame_number);
+
+        if frame_or_not.is_some() {
+            opt_bgra_to_bgra_u8(&frame_or_not)
+        } else {
+            self.cached_frame.clone()
         }
     }
 }
