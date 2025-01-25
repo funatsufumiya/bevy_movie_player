@@ -91,7 +91,7 @@ fn setup(
     // background plane
     commands.spawn((
         Sprite {
-            color: Color::linear_rgb(0.25, 0.25, 0.75),
+            color: Color::srgb(0.0, 0.0, 0.0),
             custom_size: Some(Vec2::new(800.0, 600.0)),
             ..default()
         },

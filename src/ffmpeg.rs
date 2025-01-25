@@ -5,6 +5,9 @@ use bevy::prelude::*;
 use bevy::render::render_resource::TextureFormat;
 use bevy::utils::ConditionalSendFuture;
 use derivative::Derivative;
+use ndarray::s;
+use ndarray::stack;
+use ndarray::Array;
 use ndarray::ArrayBase;
 use ndarray::Dim;
 use ndarray::OwnedRepr;
@@ -146,20 +149,23 @@ impl Blankable for FFmpegMoviePlayer {
 
 fn opt_rgb_to_bgra_u8(opt_rgb_ndarray: Option<(video_rs::Time, ArrayBase<OwnedRepr<u8>, Dim<[usize; 3]>>)>) -> Option<Vec<u8>> {
     if let Some(rgb) = opt_rgb_ndarray {
-        let array_base = rgb.1;
-        // get as BGRA from RGB ndarray
-        // BGRA = RGBA[..., [2, 1, 0, 3]] in numpy
-        // BGR = RGB[..., [2, 1, 0]] in numpy
-        // ndarray 
-        let rgb_ndarray = array_base.view();
-        let bgr_ndarray = rgb_ndarray.permuted_axes([2, 1, 0]);
-        let bgra_ndarray = bgr_ndarray.insert_axis(Axis(3));
-        let bgra_ndarray_as_u8 = bgra_ndarray.to_slice();
-        if let Some(bgra_ndarray_as_u8) = bgra_ndarray_as_u8 {
-            Some(bgra_ndarray_as_u8.to_vec())
-        }else{
-            None
-        }
+
+        let rgb_ndarray = rgb.1.view();
+        let r_array = rgb_ndarray.index_axis(Axis(2), 0);
+        let g_array = rgb_ndarray.index_axis(Axis(2), 1);
+        let b_array = rgb_ndarray.index_axis(Axis(2), 2);
+        let mut a_array = Array::<u8,_>::zeros((rgb_ndarray.shape()[0], rgb_ndarray.shape()[1]));
+        a_array.fill(255);
+        // let rgba_ndarray = stack!(Axis(0), r_array, g_array, b_array, a_array);
+        // let rgba_ndarray_raw = rgba_ndarray.to_shape((rgba_ndarray.shape()[0] * rgba_ndarray.shape()[1] * rgba_ndarray.shape()[2])).unwrap();
+        // let rgba_ndarray_as_u8 = rgba_ndarray_raw.to_vec();
+        // return Some(rgba_ndarray_as_u8.to_vec());
+
+        let bgra_ndarray = stack!(Axis(2), b_array, g_array, r_array, a_array);
+        // let bgra_ndarray2 = bgra_ndarray.to_shape((bgra_ndarray.shape()[2], bgra_ndarray.shape()[0], bgra_ndarray.shape()[1])).unwrap();
+        let bgra_ndarray_raw = bgra_ndarray.to_shape((bgra_ndarray.shape()[0] * bgra_ndarray.shape()[1] * bgra_ndarray.shape()[2])).unwrap();
+        let bgra_ndarray_as_u8 = bgra_ndarray_raw.to_vec();
+        return Some(bgra_ndarray_as_u8.to_vec());
     } else {
         None
     }
@@ -177,7 +183,7 @@ impl BGRAImageFrameProvider for FFmpegMoviePlayer {
     fn get_last_frame_bgra(&mut self) -> Option<Vec<u8>> {
         // seek to last frame
         let frame_count: usize = (self.get_duration().as_secs_f64() * (self.decoder.frame_rate() as f64)).round() as usize;
-        self.decoder.seek_to_frame((frame_count as i64) - 1);
+        self.decoder.seek_to_frame((frame_count as i64) - 1).unwrap();
         let frame_or_not = self.decoder.decode().ok();
         opt_rgb_to_bgra_u8(frame_or_not)
     }
@@ -185,7 +191,7 @@ impl BGRAImageFrameProvider for FFmpegMoviePlayer {
     fn get_paused_frame_bgra(&mut self) -> Option<Vec<u8>> {
         let position = self.get_position();
         let frame_number = (position.as_secs_f64() * (self.decoder.frame_rate() as f64)).round() as i64;
-        self.decoder.seek_to_frame(frame_number);
+        self.decoder.seek_to_frame(frame_number).unwrap();
         let frame_or_not = self.decoder.decode().ok();
         opt_rgb_to_bgra_u8(frame_or_not)
     }
@@ -193,7 +199,8 @@ impl BGRAImageFrameProvider for FFmpegMoviePlayer {
     fn get_playing_frame_bgra(&mut self) -> Option<Vec<u8>> {
         let position = self.get_position();
         let frame_number = (position.as_secs_f64() * (self.decoder.frame_rate() as f64)).round() as i64;
-        self.decoder.seek_to_frame(frame_number);
+        // println!("frame_number: {}", frame_number);
+        self.decoder.seek_to_frame(frame_number).unwrap();
         let frame_or_not = self.decoder.decode().ok();
         opt_rgb_to_bgra_u8(frame_or_not)
     }
