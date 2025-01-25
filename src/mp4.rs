@@ -3,6 +3,7 @@ use bevy::render::render_resource::TextureFormat;
 use mp4::parse::Mp4File;
 
 use crate::movie_player::ImageData;
+use crate::movie_player::MoviePlayerStateController;
 // use crate::movie_player::LoadMode;
 use crate::movie_player::PlayingState;
 use crate::movie_player::MoviePlayer;
@@ -24,6 +25,7 @@ impl<Reader: Read + Seek> fmt::Debug for Mp4MoviePlayer<Reader> {
 pub struct Mp4MoviePlayer<Reader: Read + Seek> {
     pub mp4: Mp4File,
     pub reader: Reader,
+    state_controller: MoviePlayerStateController,
 }
 
 pub fn load_mp4(path: &str) -> impl MoviePlayer {
@@ -34,60 +36,32 @@ pub fn load_mp4(path: &str) -> impl MoviePlayer {
     Mp4MoviePlayer {
         mp4,
         reader: reader,
+        state_controller: MoviePlayerStateController::default(),
     }
 }
 
-#[allow(unused_variables)] // FIXME: just for now
 impl<Reader: Read + Seek> MoviePlayer for Mp4MoviePlayer<Reader> {
-    fn play(&mut self, looped: bool, bevy_elapsed_time: Duration) {
-        todo!()
+    fn get_state_controller(&self) -> &crate::movie_player::MoviePlayerStateController {
+        &self.state_controller
     }
 
-    fn pause(&mut self, bevy_elapsed_time: Duration) {
-        todo!()
-    }
-
-    fn stop(&mut self, bevy_elapsed_time: Duration) {
-        todo!()
-    }
-
-    fn seek(&mut self, to_time: Duration, bevy_elapsed_time: Duration) {
-        todo!()
-    }
-
-    fn update(&mut self, bevy_elapsed_time: Duration) {
-        todo!()
-    }
-
-    fn set_image_data(&mut self, image: &mut Image, bevy_elapsed_time: Duration) {
-        todo!()
-    }
-
-    fn get_image_data(&mut self, bevy_elapsed_time: Duration) -> ImageData {
-        todo!()
-    }
-
-    fn get_state(&self) -> PlayingState {
-        todo!()
+    fn get_state_controller_mut(&mut self) -> &mut crate::movie_player::MoviePlayerStateController {
+        &mut self.state_controller
     }
 
     fn get_duration(&self) -> Duration {
         todo!()
     }
 
-    fn get_position(&self, bev_time: &Time) -> Duration {
+    fn get_resolution(&self) -> (u32, u32) {
         todo!()
     }
 
-    fn set_volume(&mut self, volume: f32) {
+    fn set_volume(&mut self, _volume: f32) {
         todo!()
     }
 
     fn get_volume(&self) -> f32 {
-        todo!()
-    }
-
-    fn get_size(&self) -> (u32, u32) {
         todo!()
     }
 }

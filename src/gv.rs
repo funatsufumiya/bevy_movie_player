@@ -22,6 +22,7 @@ use crate::movie_player::CompressedImageDataProvider;
 use crate::movie_player::ImageData;
 use crate::movie_player::ImageDataProvider;
 use crate::movie_player::LoopMode;
+use crate::movie_player::MoviePlayerStateController;
 // use crate::movie_player::LoadMode;
 use crate::movie_player::PlayingState;
 use crate::movie_player::MoviePlayer;
@@ -37,13 +38,8 @@ use bevy::prelude::TypePath;
 
 pub struct GVMoviePlayer<Reader: Read + Seek> {
     pub gv: GVVideo<Reader>,
-    state: PlayingState,
-    bevy_elapsed_time: Duration,
-    play_started_time: Option<Duration>,
-    pause_started_time: Option<Duration>,
-    seek_position: Duration,
-    loop_mode: LoopMode,
     blank_mode: BlankMode,
+    state_controller: MoviePlayerStateController,
 }
 
 #[derive(Asset, TypePath, Derivative)]
@@ -129,13 +125,8 @@ pub fn load_gv(path: &str) -> GVMoviePlayer<BufReader<File>> {
     
     GVMoviePlayer {
         gv,
-        state: PlayingState::Stopped,
-        bevy_elapsed_time: Duration::from_secs(0),
-        play_started_time: None,
-        pause_started_time: None,
-        seek_position: Duration::from_secs(0),
-        loop_mode: LoopMode::default(),
         blank_mode: BlankMode::default(),
+        state_controller: MoviePlayerStateController::default(),
     }
 }
 
@@ -147,13 +138,8 @@ pub fn load_gv_from_reader<R>(reader: R) -> GVMoviePlayer<R>
     
     GVMoviePlayer {
         gv,
-        state: PlayingState::Stopped,
-        bevy_elapsed_time: Duration::from_secs(0),
-        play_started_time: None,
-        pause_started_time: None,
-        seek_position: Duration::from_secs(0),
-        loop_mode: LoopMode::default(),
         blank_mode: BlankMode::default(),
+        state_controller: MoviePlayerStateController::default(),
     }
 }
 
@@ -170,106 +156,36 @@ pub fn load_gv_on_memory(path: &str) -> GVMoviePlayer<Cursor<Vec<u8>>> {
     
     GVMoviePlayer {
         gv,
-        state: PlayingState::Stopped,
-        bevy_elapsed_time: Duration::from_secs(0),
-        play_started_time: None,
-        pause_started_time: None,
-        seek_position: Duration::from_secs(0),
-        loop_mode: LoopMode::default(),
         blank_mode: BlankMode::default(),
+        state_controller: MoviePlayerStateController::default(),
+    }
+}
+
+impl<Reader: Read + Seek> Blankable for GVMoviePlayer<Reader> {
+    fn get_blank_mode(&self) -> BlankMode {
+        self.blank_mode
+    }
+    
+    fn set_blank_mode(&mut self, blank_mode: BlankMode) {
+        self.blank_mode = blank_mode;
     }
 }
 
 impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
-    fn play(&mut self) {
-        if self.state == PlayingState::Playing {
-            warn!("Already playing");
-            return;
-        } else if self.state == PlayingState::Paused {
-            let paused_duration = self.bevy_elapsed_time - self.pause_started_time.unwrap();
-            self.play_started_time = Some(self.play_started_time.unwrap() + paused_duration);
-            self.pause_started_time = None;
-        } else if self.state == PlayingState::Stopped {
-            self.play_started_time = Some(self.bevy_elapsed_time);
-        }
-        self.state = PlayingState::Playing;
+    fn get_state_controller(&self) -> &crate::movie_player::MoviePlayerStateController {
+        &self.state_controller
     }
 
-    fn pause(&mut self) {
-        if self.state == PlayingState::Paused {
-            warn!("Already paused");
-            return;
-        } else if self.state == PlayingState::Stopped {
-            warn!("Not playing");
-            return;
-        } else if self.state == PlayingState::Playing {
-            self.state = PlayingState::Paused;
-            self.pause_started_time = Some(self.bevy_elapsed_time);
-            self.seek_position = (self.bevy_elapsed_time - self.play_started_time.unwrap()) + self.seek_position;
-            self.play_started_time = self.pause_started_time;
-        }
-    }
-
-    fn stop(&mut self) {
-        if self.state == PlayingState::Stopped {
-            warn!("Already stopped");
-        }
-
-        self.state = PlayingState::Stopped;
-        self.seek_position = Duration::from_secs(0);
-        self.play_started_time = None;
-        self.pause_started_time = None;
-    }
-
-    fn seek(&mut self, to_time: Duration) {
-        self.seek_position = to_time;
-        self.play_started_time = Some(self.bevy_elapsed_time);
-    }
-
-    fn get_state(&self) -> PlayingState {
-        self.state
+    fn get_state_controller_mut(&mut self) -> &mut crate::movie_player::MoviePlayerStateController {
+        &mut self.state_controller
     }
 
     fn get_duration(&self) -> Duration {
         self.gv.get_duration()
     }
 
-    fn update(&mut self, bevy_elapsed_time: Duration) {
-        self.bevy_elapsed_time = bevy_elapsed_time;
-
-        if self.state == PlayingState::Playing {
-            let position = self.get_position();
-            if position >= self.get_duration() {
-                match self.loop_mode {
-                    LoopMode::Stop => {
-                        self.stop();
-                    },
-                    LoopMode::Loop => {
-                        self.seek(Duration::from_secs(0));
-                    },
-                    LoopMode::PauseAtEnd => {
-                        // self.seek(self.get_duration(), bevy_elapsed_time);
-
-                        // FIXME: not working
-                        // let last_frame_pos = self.gv.get_fps() * (self.gv.get_frame_count() as f32 - 1.0);
-                        // self.seek(Duration::from_secs_f32(last_frame_pos), bevy_elapsed_time);
-
-                        // WORKAROUND: seek to the end - 0.1ms
-                        self.seek(self.get_duration() - Duration::from_secs_f32(0.0001));
-                        self.pause();
-                    },
-                }
-            }
-        }
-    }
-
-    fn get_position(&self) -> Duration {
-        match self.state {
-            PlayingState::Stopped => Duration::from_secs(0),
-            // PlayingState::Paused => self.seek_position,
-            PlayingState::Paused => self.seek_position,
-            PlayingState::Playing => (self.bevy_elapsed_time - self.play_started_time.unwrap()) + self.seek_position,
-        }
+    fn get_resolution(&self) -> (u32, u32) {
+        self.gv.get_resolution()
     }
 
     fn set_volume(&mut self, _volume: f32) {
@@ -280,28 +196,6 @@ impl<Reader: Read + Seek> MoviePlayer for GVMoviePlayer<Reader> {
     fn get_volume(&self) -> f32 {
         warn!("Volume is not supported");
         0.0
-    }
-    
-    fn get_resolution(&self) -> (u32, u32) {
-        self.gv.get_resolution()
-    }
-    
-    fn get_loop_mode(&self) -> LoopMode {
-        self.loop_mode
-    }
-    
-    fn set_loop_mode(&mut self, loop_mode: LoopMode) {
-        self.loop_mode = loop_mode;
-    }
-}
-
-impl<Reader: Read + Seek> Blankable for GVMoviePlayer<Reader> {
-    fn set_blank_mode(&mut self, blank_mode: BlankMode) {
-        self.blank_mode = blank_mode;
-    }
-    
-    fn get_blank_mode(&self) -> BlankMode {
-        return self.blank_mode;
     }
 }
 
@@ -389,12 +283,12 @@ impl<Reader: Read + Seek> ImageDataProvider for GVMoviePlayer<Reader> {
     }
 
     fn get_image_data(&mut self) -> ImageData {
-        match self.state {
+        match self.get_state() {
             PlayingState::Stopped => {
                 // FIXME: slow? need cached for first and last frame?
-                let frame_or_not = if self.blank_mode == BlankMode::LastFrameOnPause_FirstFrameOnStop {
+                let frame_or_not = if self.get_blank_mode() == BlankMode::LastFrameOnPause_FirstFrameOnStop {
                     self.gv.read_frame(0).ok()
-                } else if self.blank_mode == BlankMode::LastFrameOnPauseAndStop {
+                } else if self.get_blank_mode() == BlankMode::LastFrameOnPauseAndStop {
                     self.gv.read_frame(self.gv.get_frame_count() - 1).ok()
                 } else {
                     None
@@ -409,7 +303,7 @@ impl<Reader: Read + Seek> ImageDataProvider for GVMoviePlayer<Reader> {
                     None
                 };
                 
-                get_blank_frame_bgra(self.blank_mode, self.state, frame_data)
+                get_blank_frame_bgra(self.get_blank_mode(), self.get_state(), frame_data)
             }
             PlayingState::Paused => {
                 // FIXME: slow? need cached for first and last frame?
@@ -424,7 +318,7 @@ impl<Reader: Read + Seek> ImageDataProvider for GVMoviePlayer<Reader> {
                     None
                 };
                 
-                get_blank_frame_bgra(self.blank_mode, self.state, last_frame_data)
+                get_blank_frame_bgra(self.get_blank_mode(), self.get_state(), last_frame_data)
             }
             PlayingState::Playing => {
                 let frame = self.gv.read_frame_at(self.get_position()).ok();
@@ -436,7 +330,7 @@ impl<Reader: Read + Seek> ImageDataProvider for GVMoviePlayer<Reader> {
                     }
                 } else {
                     // WORKAROUND
-                    get_blank_frame_bgra(self.blank_mode, self.state, None)
+                    get_blank_frame_bgra(self.get_blank_mode(), self.get_state(), None)
                 };
                 frame_data
             }
@@ -466,12 +360,12 @@ impl<Reader: Read + Seek> CompressedImageDataProvider for GVMoviePlayer<Reader> 
     }
 
     fn get_compressed_image_data(&mut self) -> ImageData {
-        match self.state {
+        match self.get_state() {
             PlayingState::Stopped => {
                 // FIXME: slow? need cached for first and last frame?
-                let frame_or_not = if self.blank_mode == BlankMode::LastFrameOnPause_FirstFrameOnStop {
+                let frame_or_not = if self.get_blank_mode() == BlankMode::LastFrameOnPause_FirstFrameOnStop {
                     self.gv.read_frame_compressed(0).ok()
-                } else if self.blank_mode == BlankMode::LastFrameOnPauseAndStop {
+                } else if self.get_blank_mode() == BlankMode::LastFrameOnPauseAndStop {
                     self.gv.read_frame_compressed(self.gv.get_frame_count() - 1).ok()
                 } else {
                     None
@@ -485,7 +379,7 @@ impl<Reader: Read + Seek> CompressedImageDataProvider for GVMoviePlayer<Reader> 
                 } else {
                     None
                 };
-                get_blank_frame_bgra(self.blank_mode, self.state, frame_data)
+                get_blank_frame_bgra(self.get_blank_mode(), self.get_state(), frame_data)
             }
             PlayingState::Paused => {
                 // FIXME: slow? need cached for first and last frame?
@@ -499,7 +393,7 @@ impl<Reader: Read + Seek> CompressedImageDataProvider for GVMoviePlayer<Reader> 
                 } else {
                     None
                 };
-                get_blank_frame_bgra(self.blank_mode, self.state, last_frame_data)
+                get_blank_frame_bgra(self.get_blank_mode(), self.get_state(), last_frame_data)
             }
             PlayingState::Playing => {
                 let frame = self.gv.read_frame_compressed_at(self.get_position()).ok();
@@ -511,7 +405,7 @@ impl<Reader: Read + Seek> CompressedImageDataProvider for GVMoviePlayer<Reader> 
                     }
                 } else {
                     // WORKAROUND
-                    get_blank_frame_bgra(self.blank_mode, self.state, None)
+                    get_blank_frame_bgra(self.get_blank_mode(), self.get_state(), None)
                 };
                 frame_data
             }

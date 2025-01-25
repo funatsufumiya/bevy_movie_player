@@ -1,6 +1,6 @@
 pub mod movie_player;
-// #[cfg(feature = "mp4")]
-// pub mod mp4;
+#[cfg(feature = "mp4")]
+pub mod mp4;
 pub mod gv;
 pub mod plugin;
 #[cfg(feature = "lottie")]

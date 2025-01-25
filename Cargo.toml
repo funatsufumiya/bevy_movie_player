@@ -1,6 +1,6 @@
 [package]
 name = "bevy_movie_player"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
 
 [dev-dependencies]
@@ -37,7 +37,6 @@ name = "play_gv_video"
 path = "examples/play_gv_video.rs"
 doc-scrape-examples = true
 required-features = []
-
 
 [[example]]
 name = "play_multiple_gv_video"

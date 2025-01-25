@@ -160,7 +160,6 @@ fn update(
     movie_res.last_update_time = Some(time.elapsed());
 }
 
-#[cfg(feature = "lottie")]
 fn update_fps(
     diagnostics: Res<DiagnosticsStore>,
     mut query: Query<&mut TextSpan, With<FpsText>>,

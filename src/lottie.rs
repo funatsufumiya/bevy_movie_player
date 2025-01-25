@@ -10,6 +10,7 @@ use bevy::utils::ConditionalSendFuture;
 use derivative::Derivative;
 use rlottie::Bgra;
 
+use crate::movie_player::MoviePlayerStateController;
 use crate::movie_player::BlankMode;
 use crate::movie_player::Blankable;
 use crate::movie_player::CompressedImageDataProvider;
@@ -31,17 +32,12 @@ use std::time::Duration;
 
 #[derive(Derivative, Asset, TypePath)]
 #[derivative(Debug)]
-
 pub struct LottieMoviePlayer {
     pub lottie: Arc<Mutex<LottieAnimation>>,
     #[derivative(Debug="ignore")]
     pub lottie_surface: LottieSurface,
-    state: PlayingState,
-    bevy_elapsed_time: Duration,
-    play_started_time: Option<Duration>,
-    pause_started_time: Option<Duration>,
-    seek_position: Duration,
-    loop_mode: LoopMode,
+    #[derivative(Debug="ignore")]
+    state_controller: MoviePlayerStateController,
     blank_mode: BlankMode,
 }
 
@@ -103,12 +99,7 @@ pub fn load_lottie(path: &str) -> LottieMoviePlayer {
     LottieMoviePlayer {
         lottie: Arc::new(Mutex::new(lottie)),
         lottie_surface,
-        state: PlayingState::Stopped,
-        bevy_elapsed_time: Duration::from_secs(0),
-        play_started_time: None,
-        pause_started_time: None,
-        seek_position: Duration::from_secs(0),
-        loop_mode: LoopMode::default(),
+        state_controller: MoviePlayerStateController::default(),
         blank_mode: BlankMode::default(),
     }
 }
@@ -132,107 +123,23 @@ pub fn load_lottie_from_data<D, K, P>(json_data: D, cache_key: K, resource_path:
     LottieMoviePlayer {
         lottie: Arc::new(Mutex::new(lottie)),
         lottie_surface,
-        state: PlayingState::Stopped,
-        bevy_elapsed_time: Duration::from_secs(0),
-        play_started_time: None,
-        pause_started_time: None,
-        seek_position: Duration::from_secs(0),
-        loop_mode: LoopMode::default(),
+        state_controller: MoviePlayerStateController::default(),
         blank_mode: BlankMode::default(),
     }
 }
 
 impl MoviePlayer for LottieMoviePlayer {
-    fn play(&mut self) {
-        if self.state == PlayingState::Playing {
-            warn!("Already playing");
-            return;
-        } else if self.state == PlayingState::Paused {
-            let paused_duration = self.bevy_elapsed_time - self.pause_started_time.unwrap();
-            self.play_started_time = Some(self.play_started_time.unwrap() + paused_duration);
-            self.pause_started_time = None;
-        } else if self.state == PlayingState::Stopped {
-            self.play_started_time = Some(self.bevy_elapsed_time);
-        }
-        self.state = PlayingState::Playing;
+    fn get_state_controller(&self) -> &crate::movie_player::MoviePlayerStateController {
+        &self.state_controller
     }
-
-    fn pause(&mut self) {
-        if self.state == PlayingState::Paused {
-            warn!("Already paused");
-            return;
-        } else if self.state == PlayingState::Stopped {
-            warn!("Not playing");
-            return;
-        } else if self.state == PlayingState::Playing {
-            self.state = PlayingState::Paused;
-            self.pause_started_time = Some(self.bevy_elapsed_time);
-            self.seek_position = (self.bevy_elapsed_time - self.play_started_time.unwrap()) + self.seek_position;
-            self.play_started_time = self.pause_started_time;
-        }
+    
+    fn get_state_controller_mut(&mut self) -> &mut crate::movie_player::MoviePlayerStateController {
+        &mut self.state_controller
     }
-
-    fn stop(&mut self) {
-        if self.state == PlayingState::Stopped {
-            warn!("Already stopped");
-        }
-
-        self.state = PlayingState::Stopped;
-        self.seek_position = Duration::from_secs(0);
-        self.play_started_time = None;
-        self.pause_started_time = None;
-    }
-
-    fn seek(&mut self, to_time: Duration) {
-        self.seek_position = to_time;
-        self.play_started_time = Some(self.bevy_elapsed_time);
-    }
-
-    fn get_state(&self) -> PlayingState {
-        self.state
-    }
-
+    
     fn get_duration(&self) -> Duration {
         let lottie = self.lottie.lock().unwrap();
         Duration::from_secs_f64(lottie.duration())
-    }
-
-    fn update(&mut self, bevy_elapsed_time: Duration) {
-        self.bevy_elapsed_time = bevy_elapsed_time;
-
-        if self.state == PlayingState::Playing {
-            let position = self.get_position();
-            if position >= self.get_duration() {
-                match self.loop_mode {
-                    LoopMode::Stop => {
-                        self.stop();
-                    },
-                    LoopMode::Loop => {
-                        self.seek(Duration::from_secs(0));
-                    },
-                    LoopMode::PauseAtEnd => {
-                        // self.seek(self.get_duration(), bevy_elapsed_time);
-
-                        // FIXME: not working
-                        // let last_frame_pos = self.gv.get_fps() * (self.gv.get_frame_count() as f32 - 1.0);
-                        // self.seek(Duration::from_secs_f32(last_frame_pos), bevy_elapsed_time);
-
-                        // WORKAROUND: seek to the end - 0.1ms
-                        self.seek(self.get_duration() - Duration::from_secs_f32(0.0001));
-                        self.pause();
-                    },
-                }
-            }
-        }
-    }
-
-    fn get_position(&self) -> Duration {
-        match self.state {
-            PlayingState::Stopped => Duration::from_secs(0),
-            // PlayingState::Paused => self.seek_position,
-            PlayingState::Paused => self.seek_position,
-            PlayingState::Playing => (self.bevy_elapsed_time - self.play_started_time.unwrap()) + self.seek_position,
-        }
     }
 
     fn set_volume(&mut self, _volume: f32) {
@@ -249,14 +156,6 @@ impl MoviePlayer for LottieMoviePlayer {
         let lottie = self.lottie.lock().unwrap();
         let size = lottie.size();
         (size.width as u32, size.height as u32)
-    }
-    
-    fn get_loop_mode(&self) -> LoopMode {
-        self.loop_mode
-    }
-    
-    fn set_loop_mode(&mut self, loop_mode: LoopMode) {
-        self.loop_mode = loop_mode;
     }
 }
 
@@ -383,7 +282,7 @@ impl ImageDataProvider for LottieMoviePlayer {
     }
 
     fn get_image_data(&mut self) -> ImageData {
-        match self.state {
+        match self.get_state() {
             PlayingState::Stopped => {
                 // FIXME: slow? need cached for first and last frame?
                 let mut lottie= self.lottie.lock().unwrap();
@@ -405,7 +304,7 @@ impl ImageDataProvider for LottieMoviePlayer {
                     None
                 };
                 
-                get_blank_frame_bgra(self.blank_mode, self.state, frame_data)
+                get_blank_frame_bgra(self.blank_mode, self.get_state(), frame_data)
             }
             PlayingState::Paused => {
                 // FIXME: slow? need cached for first and last frame?
@@ -424,7 +323,7 @@ impl ImageDataProvider for LottieMoviePlayer {
                     None
                 };
                 
-                get_blank_frame_bgra(self.blank_mode, self.state, last_frame_data)
+                get_blank_frame_bgra(self.blank_mode, self.get_state(), last_frame_data)
             }
             PlayingState::Playing => {
                 let mut lottie= self.lottie.lock().unwrap();
@@ -440,7 +339,7 @@ impl ImageDataProvider for LottieMoviePlayer {
                     }
                 } else {
                     // WORKAROUND
-                    get_blank_frame_bgra(self.blank_mode, self.state, None)
+                    get_blank_frame_bgra(self.blank_mode, self.get_state(), None)
                 };
                 frame_data
             }
