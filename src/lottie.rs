@@ -10,12 +10,12 @@ use bevy::utils::ConditionalSendFuture;
 use derivative::Derivative;
 use rlottie::Bgra;
 
+use crate::blankable_image_data_provider::BGRAImageFrameProvider;
+use crate::blankable_image_data_provider::BlankMode;
+use crate::blankable_image_data_provider::Blankable;
+use crate::blankable_image_data_provider::CompressedImageFrameProvider;
 use crate::movie_player::MoviePlayerStateController;
-use crate::movie_player::BlankMode;
-use crate::movie_player::Blankable;
-use crate::movie_player::CompressedImageDataProvider;
 use crate::movie_player::ImageData;
-use crate::movie_player::ImageDataProvider;
 use crate::movie_player::LoopMode;
 // use crate::movie_player::LoadMode;
 use crate::movie_player::PlayingState;
@@ -169,77 +169,6 @@ impl Blankable for LottieMoviePlayer {
     }
 }
 
-const fn black_frame_bgra_1x1() -> &'static [u8] {
-    &[0, 0, 0, 255]
-}
-
-const fn white_frame_bgra_1x1() -> &'static [u8] {
-    &[255, 255, 255, 255]
-}
-
-const fn transparent_frame_bgra_1x1() -> &'static [u8] {
-    &[0, 0, 0, 0]
-}
-
-fn texture_1x1_bgra(data: &[u8]) -> ImageData {
-    ImageData {
-        data: data.to_vec(),
-        format: TextureFormat::Bgra8UnormSrgb,
-        resolution: (1, 1),
-    }
-}
-// fn texture_bgra(data: &Vec<u8>, width: u32, height: u32) -> ImageData {
-//     ImageData {
-//         data: data.clone(),
-//         format: TextureFormat::Bgra8UnormSrgb,
-//         resolution: (width, height),
-//     }
-// }
-
-fn get_blank_frame_bgra(blank_mode: BlankMode, state:PlayingState, last_or_first_frame: Option<ImageData>) -> ImageData {
-    // NOTE: BGRA format, black is (0, 0, 0, 255), white is (255, 255, 255, 255)
-    match blank_mode {
-        BlankMode::Black => texture_1x1_bgra(black_frame_bgra_1x1()),
-        BlankMode::White => texture_1x1_bgra(white_frame_bgra_1x1()),
-        BlankMode::Transparent => texture_1x1_bgra(transparent_frame_bgra_1x1()),
-        BlankMode::LastFrameOnPause_TransparentOnStop => {
-            if state == PlayingState::Paused {
-                if let Some(last_frame) = last_or_first_frame {
-                    last_frame
-                } else {
-                    texture_1x1_bgra(transparent_frame_bgra_1x1())
-                }
-            } else {
-                texture_1x1_bgra(transparent_frame_bgra_1x1())
-            }
-        },
-        BlankMode::LastFrameOnPause_FirstFrameOnStop => {
-            if state == PlayingState::Paused {
-                if let Some(last_frame) = last_or_first_frame {
-                    last_frame
-                } else {
-                    texture_1x1_bgra(transparent_frame_bgra_1x1())
-                }
-            } else if state == PlayingState::Stopped {
-                if let Some(first_frame) = last_or_first_frame {
-                    first_frame
-                } else {
-                    texture_1x1_bgra(transparent_frame_bgra_1x1())
-                }
-            } else {
-                texture_1x1_bgra(transparent_frame_bgra_1x1())
-            }
-        },
-        BlankMode::LastFrameOnPauseAndStop => {
-            if let Some(last_or_first_frame) = last_or_first_frame {
-                last_or_first_frame
-            } else {
-                texture_1x1_bgra(transparent_frame_bgra_1x1())
-            }
-        },
-    }
-}
-
 pub fn get_bgra_data_as_bytes(data: &[Bgra]) -> &[u8] {
     unsafe {
         slice::from_raw_parts(
@@ -269,80 +198,53 @@ fn get_resolution_of_lottie(lottie: &rlottie::Animation) -> (u32, u32) {
     (size.width as u32, size.height as u32)
 }
 
-impl ImageDataProvider for LottieMoviePlayer {
-    fn set_image_data(&mut self, image: &mut Image) {
-        let image_data = self.get_image_data();
-        image.data = image_data.data;
-        image.texture_descriptor.format = image_data.format;
-        image.texture_descriptor.size = Extent3d {
-            width: image_data.resolution.0,
-            height: image_data.resolution.1,
-            depth_or_array_layers: 1,
-        };
+impl BGRAImageFrameProvider for LottieMoviePlayer {
+    fn get_first_frame_bgra(&mut self) -> Option<Vec<u8>> {
+        let mut lottie= self.lottie.lock().unwrap();
+        let frame_or_not = read_frame(&mut lottie, &mut self.lottie_surface, 0);
+        if let Some(frame) = frame_or_not {
+            let bgra_data = get_bgra_from_data(frame);
+            Some(bgra_data)
+        } else {
+            None
+        }
     }
 
-    fn get_image_data(&mut self) -> ImageData {
-        match self.get_state() {
-            PlayingState::Stopped => {
-                // FIXME: slow? need cached for first and last frame?
-                let mut lottie= self.lottie.lock().unwrap();
-                let frame_or_not = if self.blank_mode == BlankMode::LastFrameOnPause_FirstFrameOnStop {
-                    read_frame(&mut lottie, &mut self.lottie_surface, 0)
-                } else if self.blank_mode == BlankMode::LastFrameOnPauseAndStop {
-                    let total_frame = lottie.totalframe();
-                    read_frame(&mut lottie, &mut self.lottie_surface, total_frame - 1)
-                } else {
-                    None
-                };
-                let frame_data = if let Some(frame) = frame_or_not {
-                    Some(ImageData {
-                        data: get_bgra_from_data(frame),
-                        format: TextureFormat::Bgra8Unorm,
-                        resolution: get_resolution_of_lottie(&lottie),
-                    })
-                } else {
-                    None
-                };
-                
-                get_blank_frame_bgra(self.blank_mode, self.get_state(), frame_data)
-            }
-            PlayingState::Paused => {
-                // FIXME: slow? need cached for first and last frame?
-                let mut lottie= self.lottie.lock().unwrap();
-                let last_frame = {
-                    lottie.render(0, &mut self.lottie_surface);
-                    Some(self.lottie_surface.data())
-                };
-                let last_frame_data = if let Some(frame) = last_frame {
-                    Some(ImageData {
-                        data: get_bgra_from_data(frame),
-                        format: TextureFormat::Bgra8Unorm,
-                        resolution: get_resolution_of_lottie(&lottie),
-                    })
-                } else {
-                    None
-                };
-                
-                get_blank_frame_bgra(self.blank_mode, self.get_state(), last_frame_data)
-            }
-            PlayingState::Playing => {
-                let mut lottie= self.lottie.lock().unwrap();
-                let position = self.get_position();
-                let frame = {
-                    read_frame_at(&mut lottie, &mut self.lottie_surface, position)
-                };
-                let frame_data = if let Some(frame) = frame {
-                    ImageData {
-                        data: get_bgra_from_data(frame),
-                        format: TextureFormat::Bgra8Unorm,
-                        resolution: get_resolution_of_lottie(&lottie),
-                    }
-                } else {
-                    // WORKAROUND
-                    get_blank_frame_bgra(self.blank_mode, self.get_state(), None)
-                };
-                frame_data
-            }
+    fn get_last_frame_bgra(&mut self) -> Option<Vec<u8>> {
+        let mut lottie= self.lottie.lock().unwrap();
+        let total_frame = lottie.totalframe();
+        let frame_or_not = read_frame(&mut lottie, &mut self.lottie_surface, total_frame - 1);
+        if let Some(frame) = frame_or_not {
+            let bgra_data = get_bgra_from_data(frame);
+            Some(bgra_data)
+        } else {
+            None
+        }
+    }
+
+    fn get_paused_frame_bgra(&mut self) -> Option<Vec<u8>> {
+        let mut lottie= self.lottie.lock().unwrap();
+        let position = self.get_position();
+        let frame_or_not =
+            read_frame_at(&mut lottie, &mut self.lottie_surface, position);
+        if let Some(frame) = frame_or_not {
+            let bgra_data = get_bgra_from_data(frame);
+            Some(bgra_data)
+        } else {
+            None
+        }
+    }
+
+    fn get_playing_frame_bgra(&mut self) -> Option<Vec<u8>> {
+        let mut lottie= self.lottie.lock().unwrap();
+        let position = self.get_position();
+        let frame_or_not =
+            read_frame_at(&mut lottie, &mut self.lottie_surface, position);
+        if let Some(frame) = frame_or_not {
+            let bgra_data = get_bgra_from_data(frame);
+            Some(bgra_data)
+        } else {
+            None
         }
     }
 }

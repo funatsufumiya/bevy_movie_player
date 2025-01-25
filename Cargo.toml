@@ -1,6 +1,6 @@
 [package]
 name = "bevy_movie_player"
-version = "0.4.1"
+version = "0.4.2"
 edition = "2021"
 
 [dev-dependencies]
@@ -47,5 +47,11 @@ required-features = []
 [[example]]
 name = "play_lottie"
 path = "examples/play_lottie.rs"
+doc-scrape-examples = true
+required-features = ["lottie"]
+
+[[example]]
+name = "play_lottie_seek"
+path = "examples/play_lottie_seek.rs"
 doc-scrape-examples = true
 required-features = ["lottie"]

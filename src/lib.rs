@@ -1,4 +1,6 @@
 pub mod movie_player;
+pub mod image_data_provider;
+pub mod blankable_image_data_provider;
 #[cfg(feature = "mp4")]
 pub mod mp4;
 pub mod gv;

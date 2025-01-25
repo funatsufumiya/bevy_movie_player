@@ -2,7 +2,7 @@ use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension}}};
 
 use bevy_asset_loader::asset_collection::AssetCollection;
-use bevy_movie_player::{image_data_provider::{ImageCreator, ImageDataProvider}, lottie::LottieMovie, movie_player::LoopMode, prelude::*};
+use bevy_movie_player::{image_data_provider::{ImageCreator, ImageDataProvider}, lottie::LottieMovie, movie_player::{LoopMode, PlayingState}, prelude::*};
 use bevy_movie_player::lottie::LottieMoviePlayer;
 use bevy_movie_player::lottie::load_lottie;
 
@@ -28,6 +28,7 @@ fn main() {
         .add_systems(OnEnter(AssetLoadingState::Loaded), setup)
         .add_systems(Update, update.run_if(is_asset_ready))
         .add_systems(Update, update_fps)
+        .add_systems(Update, key_handler)
         .run();
 }
 
@@ -168,5 +169,49 @@ fn update_fps(
                 text.0 = format!("{value:.2}");
             }
         }
+    }
+}
+
+fn key_handler(
+    mut assets: ResMut<Assets<LottieMovie>>,
+    mut movie_assets: ResMut<MovieAssets>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    // time: Res<Time>,
+) {
+    let lottie_movie = assets.get_mut(&movie_assets.test).unwrap();
+    let movie_player = &mut lottie_movie.player;
+    if keyboard_input.just_pressed(KeyCode::Space) {
+        // movie_player.pause(&time);
+
+        // toggle play/pause
+        match movie_player.get_state() {
+            PlayingState::Playing => movie_player.pause(),
+            PlayingState::Paused => movie_player.play(),
+            PlayingState::Stopped => movie_player.play(),
+        }
+    }
+    if keyboard_input.just_pressed(KeyCode::Enter) {
+        // movie_player.stop(&time);
+        
+        // toggle stop/play
+        match movie_player.get_state() {
+            PlayingState::Playing => movie_player.stop(),
+            PlayingState::Paused => movie_player.stop(),
+            PlayingState::Stopped => movie_player.play(),
+        }
+    }
+    if keyboard_input.just_pressed(KeyCode::ArrowRight) {
+        let pos = movie_player.get_position();
+        movie_player.seek(pos + Duration::from_secs_f32(1.0));
+    }
+    if keyboard_input.just_pressed(KeyCode::ArrowLeft) {
+        let pos = movie_player.get_position();
+        let to_time =
+            if pos.as_secs_f32() > 1.0 {
+                pos - Duration::from_secs_f32(1.0)
+            } else {
+                Duration::from_secs_f32(0.0)
+            };
+        movie_player.seek(to_time);
     }
 }
