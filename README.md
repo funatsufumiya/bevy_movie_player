@@ -36,9 +36,7 @@ A movie player plugin for Bevy game engine.
 ## Planning
 
 - auto image handling / updating (just play/stop, and eliminate `update()` also?)
-- Support .mp4 format. (using https://github.com/funatsufumiya/rust-mp4)
-- Support other formats using `ffmpeg` or `gstreamer` as a feature. (example: 
-https://gist.github.com/pkupper/108eb8a712f479ecfdb1eaf9b86cd128 )
+- Support other formats using [`video-rs`](https://github.com/oddity-ai/video-rs) as a feature.
 
 ## Contribution
 
