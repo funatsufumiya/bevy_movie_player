@@ -3,9 +3,6 @@ use bevy::asset::AssetLoader;
 use bevy::asset::AsyncReadExt;
 use bevy::asset::LoadContext;
 use bevy::prelude::*;
-use bevy::render::render_resource::Extent3d;
-use bevy::render::render_resource::TextureFormat;
-use bevy::utils::BoxedFuture;
 use bevy::utils::ConditionalSendFuture;
 use derivative::Derivative;
 use rlottie::Bgra;
@@ -13,13 +10,7 @@ use rlottie::Bgra;
 use crate::blankable_image_data_provider::BGRAImageFrameProvider;
 use crate::blankable_image_data_provider::BlankMode;
 use crate::blankable_image_data_provider::Blankable;
-use crate::blankable_image_data_provider::CompressedImageFrameProvider;
-use crate::movie_player;
 use crate::movie_player::MoviePlayerStateController;
-use crate::movie_player::ImageData;
-use crate::movie_player::LoopMode;
-// use crate::movie_player::LoadMode;
-use crate::movie_player::PlayingState;
 use crate::movie_player::MoviePlayer;
 
 use rlottie::Animation as LottieAnimation;
@@ -27,10 +18,8 @@ use rlottie::Surface as LottieSurface;
 
 use core::slice;
 use std::mem;
-use std::ops::DerefMut;
 use std::sync::Arc;
 use std::sync::Mutex;
-use std::sync::MutexGuard;
 use std::time::Duration;
 
 #[derive(Derivative, Asset, TypePath)]
