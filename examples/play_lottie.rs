@@ -2,14 +2,10 @@ use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
 use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension}}};
 
 use bevy_asset_loader::asset_collection::AssetCollection;
-#[cfg(feature = "lottie")]
 use bevy_movie_player::{lottie::LottieMovie, movie_player::{CompressedImageDataProvider, ImageDataProvider, LoopMode}, prelude::*};
-#[cfg(feature = "lottie")]
 use bevy_movie_player::lottie::LottieMoviePlayer;
-#[cfg(feature = "lottie")]
 use bevy_movie_player::lottie::load_lottie;
 
-#[cfg(feature = "lottie")]
 fn main() {
     use bevy_asset_loader::loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt};
 
@@ -35,14 +31,12 @@ fn main() {
         .run();
 }
 
-#[cfg(feature = "lottie")]
 #[derive(AssetCollection, Resource)]
 pub struct MovieAssets {
   #[asset(path = "test.json")]
   pub test: Handle<LottieMovie>,
 }
 
-#[cfg(feature = "lottie")]
 #[derive(Resource)]
 struct MovieRes {
     last_update_time: Option<Duration>,
@@ -70,7 +64,6 @@ fn is_asset_ready (
     image_handle_res.handle.is_some() 
 }
 
-#[cfg(feature = "lottie")]
 fn setup(
     mut commands: Commands,
     mut images: ResMut<Assets<Image>>,
@@ -135,7 +128,6 @@ fn setup(
     });
 }
 
-#[cfg(feature = "lottie")]
 fn update(
     mut images: ResMut<Assets<Image>>,
     image_handle: Res<ImageHandle>,
@@ -181,9 +173,4 @@ fn update_fps(
             }
         }
     }
-}
-
-#[cfg(not(feature = "lottie"))]
-fn main() {
-    println!("This example requires `--features lottie`");
 }

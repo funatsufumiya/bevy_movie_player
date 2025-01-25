@@ -31,3 +31,22 @@ rlottie-sys = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "40da
 # rlottie-sys = { version = "0.2.9", optional = true }
 derivative = "2.2.0"
 anyhow = "1.0"
+
+[[example]]
+name = "play_gv_video"
+path = "examples/play_gv_video.rs"
+doc-scrape-examples = true
+required-features = []
+
+
+[[example]]
+name = "play_multiple_gv_video"
+path = "examples/play_multiple_gv_video.rs"
+doc-scrape-examples = true
+required-features = []
+
+[[example]]
+name = "play_lottie"
+path = "examples/play_lottie.rs"
+doc-scrape-examples = true
+required-features = ["lottie"]
