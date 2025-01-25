@@ -20,21 +20,12 @@ bevy = { version = "0.15.1", default-features = false, features = [
     "bevy_render",
 ] }
 bevy_internal = { version = "0.15.1", features = [ "bevy_image" ]}
-# bevy = { version = "0.12.1", features = ["trace_tracy"] }
-# mp4 = { git = "https://github.com/funatsufumiya/rust-mp4", version = "0.1.0", optional = true }
-# mp4 = { version = "0.14.0", optional = true }
-# video-rs = { version = "0.10", features = ["ndarray"], optional = true }
-# video-rs = { git = "https://github.com/funatsufumiya/video-rs", branch = "feat_bgra", version = "0.10", features = ["ndarray"], optional = true }
 video-rs = { git = "https://github.com/funatsufumiya/video-rs", rev = "9d0f25e", version = "0.10", features = ["ndarray"], optional = true }
 ffmpeg-sys-next = { version = "7.1.0", optional = true }
 # ndarray = { version = "0.16.1", optional = true }
-# gv_video = { git = "https://github.com/funatsufumiya/rust-gv-video", version = "0.1.7" }
 gv_video = { version = "0.1.11", optional = true }
-# openh264 = { version = "0.1.14", optional = true }
-# rlottie = { version = "0.5.2", optional = true }
 rlottie = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "40daf8e", version = "0.5.2", optional = true }
 rlottie-sys = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "40daf8e", version = "0.2.9", optional = true }
-# rlottie-sys = { version = "0.2.9", optional = true }
 derivative = "2.2.0"
 anyhow = "1.0"
 
