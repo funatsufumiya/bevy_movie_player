@@ -150,12 +150,28 @@ impl Blankable for FFmpegMoviePlayer {
 fn opt_rgb_to_bgra_u8(opt_rgb_ndarray: Option<(video_rs::Time, ArrayBase<OwnedRepr<u8>, Dim<[usize; 3]>>)>) -> Option<Vec<u8>> {
     if let Some(rgb) = opt_rgb_ndarray {
 
+        // for faster, first just convert rgb into vec
+        // let rgb_ndarray = rgb.1.view();
+        // let size = rgb_ndarray.shape()[0] * rgb_ndarray.shape()[1];
+        // let rgb_raw = rgb_ndarray.to_shape((rgb_ndarray.shape()[0] * rgb_ndarray.shape()[1] * rgb_ndarray.shape()[2])).unwrap();
+        // let mut rgb_vec = rgb_raw.to_vec();
+        // // finally add size (fill 255)
+        // rgb_vec.append(&mut vec![255; size]);
+        // return Some(rgb_vec);
+
+        // slower
+
         let rgb_ndarray = rgb.1.view();
+        let size = rgb_ndarray.shape()[0] * rgb_ndarray.shape()[1];
+        let w: usize = rgb_ndarray.shape()[0];
+        let h: usize = rgb_ndarray.shape()[1];
         let r_array = rgb_ndarray.index_axis(Axis(2), 0);
         let g_array = rgb_ndarray.index_axis(Axis(2), 1);
         let b_array = rgb_ndarray.index_axis(Axis(2), 2);
-        let mut a_array = Array::<u8,_>::zeros((rgb_ndarray.shape()[0], rgb_ndarray.shape()[1]));
-        a_array.fill(255);
+        // let mut a_array = Array::<u8,_>::zeros((rgb_ndarray.shape()[0], rgb_ndarray.shape()[1]));
+        // a_array.fill(255);
+        let a_array = Array::<u8,_>::ones((rgb_ndarray.shape()[0], rgb_ndarray.shape()[1])) * 255;
+        // let a_array = Array::<u8,_>::from(vec![255; size]).to_shape((w, h)).unwrap();
         // let rgba_ndarray = stack!(Axis(0), r_array, g_array, b_array, a_array);
         // let rgba_ndarray_raw = rgba_ndarray.to_shape((rgba_ndarray.shape()[0] * rgba_ndarray.shape()[1] * rgba_ndarray.shape()[2])).unwrap();
         // let rgba_ndarray_as_u8 = rgba_ndarray_raw.to_vec();
@@ -204,6 +220,7 @@ impl BGRAImageFrameProvider for FFmpegMoviePlayer {
         // println!("frame_number: {}", frame_number);
         // self.decoder.seek_to_frame(frame_number).unwrap();
         let msec = position.as_millis() as i64;
+        // println!("msec: {}", msec);
         self.decoder.seek(msec).unwrap();
         let frame_or_not = self.decoder.decode().ok();
         opt_rgb_to_bgra_u8(frame_or_not)
