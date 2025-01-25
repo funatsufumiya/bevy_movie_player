@@ -257,7 +257,13 @@ fn key_handler(
         }
         if keyboard_input.just_pressed(KeyCode::ArrowLeft) {
             let pos = movie_player.get_position();
-            movie_player.seek(pos - Duration::from_secs_f32(1.0));
+            let to_time =
+                if pos.as_secs_f32() > 1.0 {
+                    pos - Duration::from_secs_f32(1.0)
+                } else {
+                    Duration::from_secs_f32(0.0)
+                };
+            movie_player.seek(to_time);
         }
     }
 }

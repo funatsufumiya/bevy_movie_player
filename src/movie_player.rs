@@ -160,8 +160,15 @@ impl MoviePlayerStateController {
             });
         }
         if to_time > movie_total_duration {
-            // WORKAROUND: seek to the end - 0.1ms
-            let actual_to_time = movie_total_duration - Duration::from_secs_f32(0.0001);
+            // // WORKAROUND: seek to the end - 0.1ms
+            // let actual_to_time = movie_total_duration - Duration::from_secs_f32(0.0001);
+            // self.seek_position = actual_to_time;
+            // self.play_started_time = Some(bevy_elapsed_time);
+            // return Err(SeekOutOfBoundsError {
+            //     actual_seeked_position: actual_to_time,
+            // });
+
+            let actual_to_time = movie_total_duration;
             self.seek_position = actual_to_time;
             self.play_started_time = Some(bevy_elapsed_time);
             return Err(SeekOutOfBoundsError {
