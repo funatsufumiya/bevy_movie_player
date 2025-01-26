@@ -32,8 +32,8 @@ A movie player plugin for Bevy game engine.
 
 ## Known issues
 
-- Movie load FPS limitation is needed. (example code has 60fps limitation, but considering to use original thread in module)
-- Very slow FPS on debug build. Please use `--release` flag to check the performance.
+- Movie loading FPS limitation is needed. (example code has 60fps limitation by `FixedUpdate`)
+- Slower FPS on debug build. Please use `--release` flag to check the performance.
 - Compressed Texture cannot be used on first frame, to avoid panic: `Using pixel_size for compressed textures is invalid` (`bevy_render-0.12.1/src/texture/image.rs:785:18`).
 - No audio support now.
 
