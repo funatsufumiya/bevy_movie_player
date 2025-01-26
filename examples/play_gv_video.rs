@@ -23,7 +23,7 @@ fn main() {
         })
         .add_systems(OnEnter(AssetLoadingState::Loaded), setup)
         // .add_systems(Update, setup.run_if(setup_needed)) // WORKAROUND
-        .add_systems(Update, update.run_if(is_asset_ready))
+        .add_systems(FixedUpdate, update.run_if(is_asset_ready))
         .add_systems(Update, update_fps)
         .run();
 }

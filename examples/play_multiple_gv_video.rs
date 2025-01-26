@@ -16,7 +16,7 @@ fn main() {
             movie_players: Vec::new(),
         })
         .add_systems(Startup, setup)
-        .add_systems(Update, update)
+        .add_systems(FixedUpdate, update)
         .add_systems(Update, key_handler)
         .add_systems(Update, update_fps)
         .run();
