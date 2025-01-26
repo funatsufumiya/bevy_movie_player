@@ -4,6 +4,8 @@ use bevy::prelude::*;
 use crate::ffmpeg::{FFmpegMovie, FFmpegMovieLoader};
 #[cfg(feature = "gv")]
 use crate::gv::{GVMovie, GVMovieLoader, GVMovieOnMemory, GVMovieOnMemoryLoader};
+#[cfg(feature = "mp4")]
+use crate::mp4::{Mp4Movie, Mp4MovieLoader, Mp4MovieOnMemory, Mp4MovieOnMemoryLoader};
 #[cfg(feature = "lottie")]
 use crate::lottie::{LottieMovie, LottieMovieLoader};
 pub struct MoviePlayerPlugin;
@@ -30,6 +32,13 @@ impl Plugin for MoviePlayerPlugin {
         app
             .init_asset::<FFmpegMovie>()
             .init_asset_loader::<FFmpegMovieLoader>()
+            ;
+        #[cfg(feature = "mp4")]
+        app
+            .init_asset::<Mp4Movie>()
+            .init_asset::<Mp4MovieOnMemory>()
+            .init_asset_loader::<Mp4MovieLoader>()
+            .init_asset_loader::<Mp4MovieOnMemoryLoader>()
             ;
     }
 }

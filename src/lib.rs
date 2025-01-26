@@ -7,6 +7,8 @@ pub mod plugin;
 pub mod ffmpeg;
 #[cfg(feature = "gv")]
 pub mod gv;
+#[cfg(feature = "mp4")]
+pub mod mp4;
 #[cfg(feature = "lottie")]
 pub mod lottie;
 

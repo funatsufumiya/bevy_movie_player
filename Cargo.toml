@@ -12,6 +12,7 @@ default = []
 lottie = [ "rlottie", "rlottie-sys" ]
 ffmpeg = [ "video-rs", "ffmpeg-sys-next" ]
 gv = [ "gv_video" ]
+mp4 = [ "dep:mp4", "openh264", "yuvutils-rs" ]
 disable-json-extension-for-lottie = []
 
 [dependencies]
@@ -21,9 +22,14 @@ bevy = { version = "0.15.1", default-features = false, features = [
 ] }
 bevy_internal = { version = "0.15.1", features = [ "bevy_image" ]}
 video-rs = { git = "https://github.com/funatsufumiya/video-rs", rev = "9d0f25e", version = "0.10", features = ["ndarray"], optional = true }
+# av = { git = "https://github.com/rust-av/rust-av", version = "0.1.0", optional = true }
 ffmpeg-sys-next = { version = "7.1.0", optional = true }
 # ndarray = { version = "0.16.1", optional = true }
 gv_video = { version = "0.1.11", optional = true }
+openh264 = { version = "0.7.1", optional = true }
+# mp4 = { version = "0.14.0", optional = true }
+mp4 = { git = "https://github.com/funatsufumiya/rust-mp4", rev = "365078d", version = "0.1.0", optional = true }
+yuvutils-rs = { version = "0.5.14", optional = true }
 rlottie = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "40daf8e", version = "0.5.2", optional = true }
 rlottie-sys = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "40daf8e", version = "0.2.9", optional = true }
 derivative = "2.2.0"
@@ -58,3 +64,9 @@ name = "play_ffmpeg"
 path = "examples/play_ffmpeg.rs"
 doc-scrape-examples = true
 required-features = ["ffmpeg"]
+
+[[example]]
+name = "play_mp4"
+path = "examples/play_mp4.rs"
+doc-scrape-examples = true
+required-features = ["mp4"]
