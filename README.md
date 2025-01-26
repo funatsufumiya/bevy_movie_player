@@ -41,6 +41,7 @@ A movie player plugin for Bevy game engine.
 ## Planning
 
 - auto image handling / updating (just play/stop, and eliminate `update()` also?)
+- pure rust based other codec support (like [rust-av](https://github.com/rust-av) and [Video Player Example (avp)](https://github.com/rust-av/avp))
 
 ## Contribution
 
