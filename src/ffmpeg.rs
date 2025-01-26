@@ -54,6 +54,14 @@ pub struct FFmpegMovie {
     pub player: FFmpegMoviePlayer,
 }
 
+impl From<FFmpegMoviePlayer> for FFmpegMovie {
+    fn from(player: FFmpegMoviePlayer) -> Self {
+        FFmpegMovie {
+            player,
+        }
+    }
+}
+
 /// Load movie from file path.
 pub fn load_movie(path: &str) -> FFmpegMoviePlayer {
     let path_ = std::path::Path::new(path);

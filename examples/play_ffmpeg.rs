@@ -1,19 +1,9 @@
-use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
-use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension}}};
+use std::time::Duration;
+use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*};
 
-use bevy_asset_loader::asset_collection::AssetCollection;
 use bevy_movie_player::{ffmpeg::{load_movie, load_movie_from_url, FFmpegMovie, FFmpegMoviePlayer}, image_data_provider::{ImageCreator, ImageDataProvider}, movie_player::{LoopMode, PlayingState}, prelude::*};
 
 fn main() {
-    use bevy_asset_loader::loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt};
-
-    let url = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
-    let movie_player = load_movie_from_url(url);
-
-    // // or:
-    // let path = "path/to/file.mp4";
-    // let movie_player = load_movie(path);
-
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(MoviePlayerPlugin)
@@ -29,7 +19,7 @@ fn main() {
         })
         .insert_resource(MovieRes {
             last_update_time: None,
-            player: movie_player,
+            movie: None,
         })
         // .add_systems(OnEnter(AssetLoadingState::Loaded), setup)
         .add_systems(Startup, setup)
@@ -41,7 +31,7 @@ fn main() {
 
 #[derive(Resource)]
 pub struct MovieRes {
-  pub player: FFmpegMoviePlayer,
+  pub movie: Option<Handle<FFmpegMovie>>,
   last_update_time: Option<Duration>,
 }
 
@@ -73,11 +63,23 @@ fn setup(
     mut images: ResMut<Assets<Image>>,
     mut image_handle: ResMut<ImageHandle>,
     mut movie_res: ResMut<MovieRes>,
-    // mut assets: ResMut<Assets<FFmpegMovie>>,
+    mut assets: ResMut<Assets<FFmpegMovie>>,
     // mut asset_server: Res<AssetServer>,
     // time: Res<Time>,
 ) {
-    let movie_player = &mut movie_res.player;
+
+    {
+        let url = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4";
+        let mut movie_player = load_movie_from_url(url);
+        movie_res.movie = Some(assets.add(movie_player));
+    }
+
+    let movie = assets.get_mut(movie_res.movie.clone().unwrap().id()).unwrap();
+    let movie_player = &mut movie.player;
+
+    // // or:
+    // let path = "path/to/file.mp4";
+    // let movie_player = load_movie(path);
 
     println!("movie width: {}", movie_player.get_resolution().0);
     println!("movie height: {}", movie_player.get_resolution().1);
@@ -85,6 +87,7 @@ fn setup(
 
     movie_player.set_loop_mode(LoopMode::Loop);
     movie_player.play();
+
 
     commands.spawn(Camera2d::default());
 
@@ -95,7 +98,7 @@ fn setup(
     // background plane
     commands.spawn((
         Sprite {
-            color: Color::srgb(0.0, 0.0, 0.0),
+            color: Color::srgb(0.0, 0.0, 0.3),
             custom_size: Some(Vec2::new(800.0, 600.0)),
             ..default()
         },
@@ -135,8 +138,7 @@ fn update(
     mut images: ResMut<Assets<Image>>,
     image_handle: Res<ImageHandle>,
     mut movie_res: ResMut<MovieRes>,
-    // mut movie_assets: ResMut<MovieAssets>,
-    // mut assets: ResMut<Assets<FFmpegMovie>>,
+    mut assets: ResMut<Assets<FFmpegMovie>>,
     time: Res<Time>,
 ) {
     // skip update to be fps 30 (msec 33)
@@ -148,9 +150,8 @@ fn update(
         }
     }
 
-    // let lottie_movie = assets.get_mut(&movie_assets.test).unwrap();
-    // let movie_player = &mut lottie_movie.player;
-    let movie_player = &mut movie_res.player;
+    let movie = assets.get_mut(movie_res.movie.clone().unwrap().id()).unwrap();
+    let movie_player = &mut movie.player;
     movie_player.update(time.elapsed());
 
     // get image from handle
@@ -179,13 +180,13 @@ fn update_fps(
 }
 
 fn key_handler(
-    // mut assets: ResMut<Assets<LottieMovie>>,
-    // mut movie_assets: ResMut<MovieAssets>,
+    mut assets: ResMut<Assets<FFmpegMovie>>,
     mut movie_res: ResMut<MovieRes>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
     // time: Res<Time>,
 ) {
-    let movie_player = &mut movie_res.player;
+    let movie = assets.get_mut(movie_res.movie.clone().unwrap().id()).unwrap();
+    let movie_player = &mut movie.player;
     if keyboard_input.just_pressed(KeyCode::Space) {
         // movie_player.pause(&time);
 
@@ -208,7 +209,7 @@ fn key_handler(
     }
     if keyboard_input.just_pressed(KeyCode::ArrowRight) {
         let pos = movie_player.get_position();
-        movie_player.seek(pos + Duration::from_secs_f32(1.0));
+        movie_player.seek(pos + Duration::from_secs_f32(1.0)).unwrap();
     }
     if keyboard_input.just_pressed(KeyCode::ArrowLeft) {
         let pos = movie_player.get_position();
@@ -218,6 +219,6 @@ fn key_handler(
             } else {
                 Duration::from_secs_f32(0.0)
             };
-        movie_player.seek(to_time);
+        movie_player.seek(to_time).unwrap();
     }
 }

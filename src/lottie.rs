@@ -40,6 +40,12 @@ pub struct LottieMovie {
     pub player: LottieMoviePlayer,
 }
 
+impl From<LottieMoviePlayer> for LottieMovie {
+    fn from(player: LottieMoviePlayer) -> Self {
+        Self { player }
+    }
+}
+
 #[derive(Default)]
 pub struct LottieMovieLoader;
 
@@ -62,9 +68,7 @@ impl AssetLoader for LottieMovieLoader {
         let player = load_lottie_from_data(bytes, cache_key, resource_path);
         // println!("Loaded Lottie {:?}", player);
         // println!("duration: {:?}", player.get_duration());
-        Ok(LottieMovie {
-          player,
-        })
+        Ok(player.into())
       })
     }
   

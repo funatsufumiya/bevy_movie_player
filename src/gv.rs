@@ -47,6 +47,22 @@ pub struct GVMovieOnMemory {
     pub player: GVMoviePlayer<Cursor<Vec<u8>>>,
 }
 
+impl From<GVMoviePlayer<BufReader<File>>> for GVMovie {
+    fn from(player: GVMoviePlayer<BufReader<File>>) -> Self {
+        GVMovie {
+            player,
+        }
+    }
+}
+
+impl From<GVMoviePlayer<Cursor<Vec<u8>>>> for GVMovieOnMemory {
+    fn from(player: GVMoviePlayer<Cursor<Vec<u8>>>) -> Self {
+        GVMovieOnMemory {
+            player,
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct GVMovieLoader;
 
@@ -70,9 +86,7 @@ impl AssetLoader for GVMovieLoader {
         let asset_path = p.to_str().unwrap();
         // TODO: error handling
         let player = load_gv(asset_path);
-        Ok(GVMovie {
-          player,
-        })
+        Ok(player.into())
       })
     }
   
@@ -97,9 +111,7 @@ impl AssetLoader for GVMovieOnMemoryLoader {
         reader.read_to_end(&mut bytes).await?;
         // TODO: error handling
         let player = load_gv_from_reader(Cursor::new(bytes));
-        Ok(GVMovieOnMemory {
-          player,
-        })
+        Ok(player.into())
       })
     }
   
