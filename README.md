@@ -10,7 +10,7 @@ A movie player plugin for Bevy game engine.
 
 - Any video format supported by [ffmpeg](https://ffmpeg.org/) (`--features ffmpeg`)
     - using [video-rs](https://github.com/oddity-ai/video-rs).
-    - Currently has extension limitation for bevy-asset-loader. (Need fix or modifying code.)
+    - Currently has extension limitation for bevy-asset-loader. (Need fix [here](https://github.com/funatsufumiya/bevy_movie_player/blob/bdc479e3ebbcefe78e5896ee4d46f1266a56815d/src/ffmpeg.rs#L121-L123) or give options in the future.)
     - ( supported from `bevy_movie_player` `0.4.2` or higher )
 - `.gv` format (`--features gv`)
     - using [rust-gv-video](https://github.com/funatsufumiya/rust-gv-video).
