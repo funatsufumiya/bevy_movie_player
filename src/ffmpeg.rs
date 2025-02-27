@@ -207,7 +207,7 @@ fn opt_bgra_to_bgra_u8(frame_or_not: &Option<video_rs::ffmpeg::frame::Video>) ->
     if let Some(frame) = frame_or_not {
         let size: usize = (frame.width() *  frame.height() * 4) as usize;
         unsafe {
-            let ptr: *const ffmpeg_sys_next::AVFrame = frame.as_ptr();
+            let ptr: *const ffmpeg_sys_the_third::AVFrame = frame.as_ptr();
             let data = frame.data(0);
             Some(data.to_vec())
         }
