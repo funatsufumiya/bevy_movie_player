@@ -38,10 +38,14 @@ A movie player plugin for Bevy game engine.
 - Compressed Texture cannot be used on first frame, to avoid panic: `Using pixel_size for compressed textures is invalid` (`bevy_render-0.12.1/src/texture/image.rs:785:18`).
 - No audio support now.
 
+### --feature ffmpeg
+
+- Converting frame into BGRA without no hardware acceleration.
+
 ## Planning
 
 - auto image handling / updating (just play/stop, and eliminate `update()` also?)
-- pure rust based other codec support (like [rust-av](https://github.com/rust-av) and [Video Player Example (avp)](https://github.com/rust-av/avp))
+- pure rust based other codec support.
 
 ## Contribution
 
