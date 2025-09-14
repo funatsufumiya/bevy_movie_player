@@ -30,6 +30,12 @@ rlottie-sys = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "40da
 derivative = "2.2.0"
 anyhow = "1.0"
 
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
 [[example]]
 name = "play_gv_video"
 path = "examples/play_gv_video.rs"
