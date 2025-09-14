@@ -1,0 +1,3 @@
+[submodule "test_assets"]
+	path = test_assets
+	url = https://github.com/funatsufumiya/gv_assets_for_test
