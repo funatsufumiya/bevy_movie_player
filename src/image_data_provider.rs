@@ -5,7 +5,7 @@ pub trait ImageDataProvider {
     /// set image data to image with uncompressed texture format (like BGRA8UnormSrgb)
     fn set_image_data(&mut self, image: &mut Image) {
         let image_data = self.get_image_data();
-        image.data = image_data.data;
+        image.data = Some(image_data.data);
         image.texture_descriptor.format = image_data.format;
         image.texture_descriptor.size = Extent3d {
             width: image_data.resolution.0,
@@ -21,7 +21,7 @@ pub trait CompressedImageDataProvider {
     /// set image data to image with compressed texture format (like BC7Srgb)
     fn set_compressed_image_data(&mut self, image: &mut Image) {
         let image_data = self.get_compressed_image_data();
-        image.data = image_data.data;
+        image.data = Some(image_data.data);
         image.texture_descriptor.format = image_data.format;
         image.texture_descriptor.size = Extent3d {
             width: image_data.resolution.0,

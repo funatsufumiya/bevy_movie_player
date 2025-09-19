@@ -3,7 +3,7 @@ use bevy::asset::AssetLoader;
 use bevy::asset::AsyncReadExt;
 use bevy::asset::LoadContext;
 use bevy::prelude::*;
-use bevy::utils::ConditionalSendFuture;
+use bevy::tasks::ConditionalSendFuture;
 use derivative::Derivative;
 use rlottie::Bgra;
 

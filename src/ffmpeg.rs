@@ -3,7 +3,7 @@ use bevy::asset::AssetLoader;
 use bevy::asset::LoadContext;
 use bevy::prelude::*;
 use bevy::render::render_resource::TextureFormat;
-use bevy::utils::ConditionalSendFuture;
+use bevy::tasks::ConditionalSendFuture;
 use derivative::Derivative;
 // use ndarray::s;
 // use ndarray::stack;

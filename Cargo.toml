@@ -4,8 +4,8 @@ version = "0.4.4"
 edition = "2021"
 
 [dev-dependencies]
-bevy = { version = "^0.15.1" }
-bevy_asset_loader = "0.22"
+bevy = { version = "^0.16" }
+bevy_asset_loader = "0.23"
 
 [features]
 default = []
@@ -15,11 +15,11 @@ gv = [ "gv_video" ]
 disable-json-extension-for-lottie = []
 
 [dependencies]
-bevy = { version = "^0.15.1", default-features = false, features = [
+bevy = { version = "^0.16", default-features = false, features = [
     "bevy_asset",
     "bevy_render",
 ] }
-bevy_internal = { version = "^0.15.1", features = [ "bevy_image" ]}
+bevy_internal = { version = "^0.16", features = [ "bevy_image" ]}
 video-rs = { git = "https://github.com/funatsufumiya/video-rs", rev = "004f18acc", version = "0.10", features = ["ndarray"], optional = true }
 # av = { git = "https://github.com/rust-av/rust-av", version = "0.1.0", optional = true }
 ffmpeg-sys-the-third = { version = "^3.0.0", optional = true }
@@ -30,11 +30,11 @@ rlottie-sys = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "40da
 derivative = "2.2.0"
 anyhow = "1.0"
 
-[profile.dev]
-opt-level = 1
+# [profile.dev]
+# opt-level = 1
 
-[profile.dev.package."*"]
-opt-level = 3
+# [profile.dev.package."*"]
+# opt-level = 3
 
 [[example]]
 name = "play_gv_video"
