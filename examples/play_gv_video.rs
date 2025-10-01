@@ -1,6 +1,6 @@
 use std::{fs::File, io::{BufReader, Cursor}, time::Duration};
-
-use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension}}};
+use bevy_asset::RenderAssetUsages;
+use bevy::{diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin}, prelude::*, render::{render_resource::{Extent3d, TextureDimension}}};
 use bevy_asset_loader::{asset_collection::AssetCollection, loading_state::{config::ConfigureLoadingState, LoadingState, LoadingStateAppExt}};
 use bevy_movie_player::{gv::{self, load_gv, load_gv_on_memory, GVMovie, GVMovieOnMemory, GVMoviePlayer}, image_data_provider::{CompressedImageDataProvider, ImageCreator}, movie_player::{LoopMode}, prelude::*};
 

@@ -1,4 +1,6 @@
-use bevy::{asset::AssetLoader, prelude::*, render::{render_asset::RenderAssetUsages, render_resource::{Extent3d, TextureDimension, TextureFormat}}};
+use bevy::{asset::AssetLoader, prelude::*,
+    render::{render_resource::{Extent3d, TextureDimension, TextureFormat}}};
+use bevy_asset::RenderAssetUsages;
 use std::{fmt, time::Duration};
 
 // #[derive(Debug, Copy, Clone, Eq, PartialEq)]
