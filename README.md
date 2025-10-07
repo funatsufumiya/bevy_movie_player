@@ -4,7 +4,8 @@
 
 A movie player plugin for Bevy game engine.
 
-**WARN** Still in development, The API may change in the future.
+> [!Warning]
+>  Still in development, The API may change in the future.
 
 ## Supported movie formats
 
