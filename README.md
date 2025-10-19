@@ -59,6 +59,10 @@ A movie player plugin for Bevy game engine.
 - auto image handling / updating (just play/stop, and eliminate `update()` also?)
 - pure rust based other codec support.
 
+## License
+
+0BSD or/and WTFPL
+
 ## Contribution
 
 - Forks and PRs are always welcome :)

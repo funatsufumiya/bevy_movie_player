@@ -1,7 +1,8 @@
 [package]
 name = "bevy_movie_player"
-version = "0.6.0"
+version = "0.6.1"
 edition = "2021"
+license = "WTFPL OR 0BSD"
 
 [dev-dependencies]
 bevy = { version = "^0.17" }
