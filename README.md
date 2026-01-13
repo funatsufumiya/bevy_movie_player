@@ -27,6 +27,7 @@ A movie player plugin for Bevy game engine.
 
 | Bevy | bevy_movie_player |
 |------|-------------------|
+| 0.18 | 0.7               |
 | 0.17 | 0.6               |
 | 0.16 | 0.5               |
 | 0.15 | 0.4               |

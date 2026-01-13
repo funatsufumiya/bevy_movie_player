@@ -1,6 +1,5 @@
 use bevy::asset::io::Reader;
 use bevy::asset::AssetLoader;
-use bevy::asset::AsyncReadExt;
 use bevy::asset::LoadContext;
 use bevy::prelude::*;
 use bevy::render::render_resource::TextureFormat;
@@ -63,10 +62,10 @@ impl From<GVMoviePlayer<Cursor<Vec<u8>>>> for GVMovieOnMemory {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, TypePath)]
 pub struct GVMovieLoader;
 
-#[derive(Default)]
+#[derive(Default, TypePath)]
 pub struct GVMovieOnMemoryLoader;
 
 impl AssetLoader for GVMovieLoader {
@@ -80,14 +79,15 @@ impl AssetLoader for GVMovieLoader {
         _settings: &Self::Settings,
         load_context: &mut LoadContext,
     ) -> impl ConditionalSendFuture<Output = Result<Self::Asset, Self::Error>> {
-      Box::pin(async move {
-        let asset_dir = "assets"; // FIXME: just WORKAROUND
-        let p = Path::new(asset_dir).join(load_context.path());
-        let asset_path = p.to_str().unwrap();
-        // TODO: error handling
-        let player = load_gv(asset_path);
-        Ok(player.into())
-      })
+        Box::pin(async move {
+            let asset_dir = "assets"; // FIXME: just WORKAROUND
+            let asset_path_str = load_context.path().to_string();
+            let p = Path::new(asset_dir).join(asset_path_str);
+            let asset_path = p.to_str().unwrap();
+            // TODO: error handling
+            let player = load_gv(asset_path);
+            Ok(player.into())
+        })
     }
   
     fn extensions(&self) -> &[&str] {

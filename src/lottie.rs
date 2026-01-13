@@ -46,7 +46,7 @@ impl From<LottieMoviePlayer> for LottieMovie {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, TypePath)]
 pub struct LottieMovieLoader;
 
 impl AssetLoader for LottieMovieLoader {

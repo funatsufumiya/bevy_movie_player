@@ -92,7 +92,7 @@ pub fn load_movie_from_url(url: &str) -> FFmpegMoviePlayer {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, TypePath)]
 pub struct FFmpegMovieLoader;
 
 impl AssetLoader for FFmpegMovieLoader {
