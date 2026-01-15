@@ -1,0 +1,6 @@
+[submodule "externals/video-rs"]
+	path = externals/video-rs
+	url = https://github.com/funatsufumiya/video-rs
+[submodule "externals/rlottie-rs"]
+	path = externals/rlottie-rs
+	url = https://github.com/funatsufumiya/rlottie-rs
