@@ -1,5 +1,10 @@
 # bevy_movie_player
 
+[![Crates.io](https://img.shields.io/crates/v/bevy_movie_player.svg)](https://crates.io/crates/bevy_movie_player)
+[![Docs.rs](https://docs.rs/bevy_movie_player/badge.svg)](https://docs.rs/bevy_movie_player)
+[![License](https://img.shields.io/crates/l/bevy_movie_player.svg)](LICENSE)
+
+
 ![screenshot](./screenshot.png)
 
 A movie player plugin for Bevy game engine.
