@@ -3,6 +3,8 @@ name = "bevy_movie_player"
 version = "0.6.2"
 edition = "2021"
 license = "WTFPL OR 0BSD"
+description = "movie player plugin for bevy"
+repository = "https://github.com/funatsufumiya/bevy_movie_player"
 
 [dev-dependencies]
 bevy = { version = "^0.17" }
@@ -13,7 +15,7 @@ bevy_asset_loader = "0.24"
 [features]
 default = []
 lottie = [ "rlottie", "rlottie-sys" ]
-ffmpeg = [ "video-rs", "ffmpeg-sys-the-third" ]
+ffmpeg = [ "video-rs" ]
 gv = [ "gv_video" ]
 disable-json-extension-for-lottie = []
 
@@ -21,16 +23,20 @@ disable-json-extension-for-lottie = []
 bevy = { version = "^0.17.3", default-features = false, features = [
     "bevy_asset",
     "bevy_render",
+    "bevy_log",
 ] }
 bevy_asset = { version = "^0.17.3", default-features = false }
 bevy_internal = { version = "^0.17.3", features = [ "bevy_image" ]}
-video-rs = { git = "https://github.com/funatsufumiya/video-rs", rev = "004f18acc", version = "0.10", features = ["ndarray"], optional = true }
+# video-rs = { git = "https://github.com/funatsufumiya/video-rs", rev = "004f18acc", version = "0.10", features = ["ndarray"], optional = true }
+video-rs = { path = "./externals/video-rs", version = "0.10", features = ["ndarray"], optional = true }
 # av = { git = "https://github.com/rust-av/rust-av", version = "0.1.0", optional = true }
-ffmpeg-sys-the-third = { version = "^3.0.0", optional = true }
+# ffmpeg-sys-the-third = { version = "^3.0.0", optional = true }
 # ndarray = { version = "0.16.1", optional = true }
 gv_video = { version = "0.1.11", optional = true }
-rlottie = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "40daf8e", version = "0.5.2", optional = true }
-rlottie-sys = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "40daf8e", version = "0.2.9", optional = true }
+# rlottie = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "40daf8e", version = "0.5.2", optional = true }
+# rlottie-sys = { git = "https://github.com/funatsufumiya/rlottie-rs", rev = "40daf8e", version = "0.2.9", optional = true }
+rlottie = { path = "./externals/rlottie-rs/rlottie", version = "0.5.2", optional = true }
+rlottie-sys = { path = "./externals/rlottie-rs/rlottie-sys", version = "0.2.9", optional = true }
 derivative = "2.2.0"
 anyhow = "1.0"
 

@@ -1008,7 +1008,6 @@ dependencies = [
  "bevy_asset_loader",
  "bevy_internal",
  "derivative",
- "ffmpeg-sys-the-third",
  "gv_video",
  "rlottie",
  "rlottie-sys",
@@ -4173,7 +4172,6 @@ checksum = "57397d16646700483b67d2dd6511d79318f9d057fdbd21a4066aeac8b41d310a"
 [[package]]
 name = "rlottie"
 version = "0.5.2"
-source = "git+https://github.com/funatsufumiya/rlottie-rs?rev=40daf8e#40daf8ebbb49ad1757f1b51e44f07e8e979650bb"
 dependencies = [
  "rgb",
  "rlottie-sys",
@@ -4182,7 +4180,6 @@ dependencies = [
 [[package]]
 name = "rlottie-sys"
 version = "0.2.9"
-source = "git+https://github.com/funatsufumiya/rlottie-rs?rev=40daf8e#40daf8ebbb49ad1757f1b51e44f07e8e979650bb"
 dependencies = [
  "bindgen 0.68.1",
  "pkg-config",
@@ -5009,7 +5006,6 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 [[package]]
 name = "video-rs"
 version = "0.10.3"
-source = "git+https://github.com/funatsufumiya/video-rs?rev=004f18acc#004f18acc015bb29f6cfd3f2746f0c80de3d5053"
 dependencies = [
  "ffmpeg-the-third",
  "ndarray",
