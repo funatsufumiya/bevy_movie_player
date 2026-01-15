@@ -1058,7 +1058,6 @@ dependencies = [
  "bevy_asset_loader",
  "bevy_internal",
  "derivative",
- "ffmpeg-sys-the-third",
  "gv_video",
  "rlottie",
  "rlottie-sys",
