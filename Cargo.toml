@@ -3,6 +3,8 @@ name = "bevy_movie_player"
 version = "0.7.1"
 edition = "2021"
 license = "WTFPL OR 0BSD"
+description = "movie player plugin for bevy"
+repository = "https://github.com/funatsufumiya/bevy_movie_player"
 
 [dev-dependencies]
 bevy = { version = "^0.18.0" }
